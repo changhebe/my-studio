@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>松風｜社群工作台</title>
+  <style>
+    /* 所有顏色集中於此。品牌尚未指定單一主色，暫用既有色票「綠隧深葉」。 */
+    :root {
+      --brand-primary: #314A35;
+      --brand-leaf: #647A49;
+      --brand-sprout: #91A66D;
+      --brand-yellow: #EEB63B;
+      --brand-orange: #CB853E;
+      --page: #F2F5F1;
+      --surface: #FFFFFF;
+      --surface-soft: #F7F9F6;
+      --text: #26392B;
+      --muted: #59685B;
+      --placeholder: #6B756D;
+      --line: #D7DFD5;
+      --chat-bg: #DFEBF1;
+      --preview-hint: #79857B;
+      --over-limit: #B42318;
+      --phone-edge: #28332B;
+      --shadow: #26392B12;
+      --clear: transparent;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--text); font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 15px; line-height: 1.6; }
+    button, textarea { font: inherit; }
+    .topbar { min-height: 92px; padding: 22px 32px; background: var(--brand-primary); color: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand-heading { display: flex; align-items: center; gap: 14px; }
+    .brand-mark { width: 38px; height: 38px; border: 1px solid var(--brand-sprout); border-radius: 50%; display: grid; place-items: center; color: var(--brand-yellow); font-family: "Songti TC", serif; font-size: 21px; }
+    h1 { margin: 0; font-size: 23px; font-weight: 600; letter-spacing: .06em; }
+    .topbar-note { font-size: 13px; white-space: nowrap; }
+    .topbar-note::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--brand-yellow); vertical-align: middle; }
+    .topbar-actions { display: flex; align-items: center; gap: 18px; }
+    .workbench-button { min-height: 38px; padding: 7px 14px; border: 1px solid var(--brand-leaf); border-radius: 7px; background: var(--surface); color: var(--brand-primary); cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; }
+    .topbar .workbench-button { background: var(--clear); color: var(--surface); border-color: var(--brand-sprout); }
+    .material-actions { padding: 0 22px 22px; }
+    .material-actions .workbench-button { width: 100%; }
+    .material-actions .workbench-button + .workbench-button { margin-top: 8px; }
+    .save-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .saved-list { max-height: 58dvh; overflow-y: auto; }
+    .saved-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .saved-item-name { min-width: 0; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
+    .saved-item-time { color: var(--muted); font-size: 12px; }
+    .saved-item-actions { display: flex; flex: none; gap: 6px; }
+    .saved-item-actions .workbench-button { padding: 6px 9px; min-height: 34px; }
+    .workbench-dialog { width: min(680px, calc(100% - 28px)); max-height: min(84dvh, 780px); padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text); box-shadow: 0 24px 60px var(--shadow); }
+    .workbench-dialog::backdrop { background: var(--phone-edge); opacity: .58; }
+    .dialog-inner { padding: 24px; }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .dialog-head-actions { display: flex; align-items: center; gap: 8px; }
+    .dialog-head h2 { margin: 0; }
+    .dialog-close { border: 0; background: var(--clear); color: var(--muted); cursor: pointer; font: inherit; font-size: 23px; line-height: 1; }
+    .dialog-field { display: block; margin: 16px 0 7px; font-weight: 600; font-size: 14px; }
+    .dialog-textarea { min-height: 170px; max-height: 40dvh; }
+    .prompt-textarea { min-height: 320px; max-height: 58dvh; }
+    .dialog-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+    .dialog-status { margin: 0; color: var(--muted); font-size: 12px; }
+    .workspace { max-width: 1680px; margin: 0 auto; padding: 28px 32px 40px; }
+    .intro { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 22px; }
+    .intro p { margin: 0; }
+    .intro-title { font-family: "Songti TC", "Noto Serif TC", serif; font-size: 21px; letter-spacing: .04em; }
+    .intro-note { font-size: 12px; color: var(--muted); }
+    .columns { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(330px, 1.25fr) minmax(280px, .9fr); gap: 20px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .panel-heading { padding: 21px 22px 17px; border-bottom: 1px solid var(--line); }
+    .heading-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: .04em; }
+    .panel-description { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+    .badge { background: var(--surface-soft); color: var(--muted); padding: 3px 8px; border: 1px solid var(--line); border-radius: 5px; font-size: 11px; white-space: nowrap; }
+    .material-fields { padding: 4px 22px 22px; }
+    .field { padding-top: 20px; }
+    .field label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+    .required { font-weight: 400; font-size: 11px; color: var(--brand-leaf); white-space: nowrap; }
+    .post-options { margin: 24px 0 0; padding: 0; border: 0; border-top: 1px solid var(--line); min-width: 0; }
+    .post-options legend { padding: 0 8px 0 0; font-size: 14px; font-weight: 600; }
+    .option-row { display: grid; grid-template-columns: 36px repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 5px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .option-row-title { align-self: center; font-size: 12px; color: var(--muted); }
+    .option-choice { position: relative; display: flex; cursor: pointer; }
+    .option-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .option-choice span { display: flex; width: 100%; min-height: 44px; padding: 7px 3px; align-items: center; justify-content: center; gap: 3px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-soft); font-size: 12px; text-align: center; }
+    .option-choice span::before { content: "＋"; }
+    .option-choice input:checked + span { color: var(--surface); background: var(--brand-primary); border-color: var(--brand-primary); }
+    .option-choice input:checked + span::before { content: "✓"; }
+    .option-choice input:focus-visible + span { outline: 2px solid var(--brand-leaf); outline-offset: 2px; }
+    .option-help, .option-status { font-size: 12px; line-height: 1.8; color: var(--muted); margin: 10px 0 0; }
+    .option-status { color: var(--brand-primary); min-height: 22px; }
+    textarea { display: block; width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); resize: vertical; line-height: 1.8; }
+    textarea::placeholder { color: var(--placeholder); opacity: 1; }
+    .field textarea { min-height: 122px; font-size: 13px; background: var(--surface-soft); }
+    textarea:focus-visible, button:focus-visible { outline: 2px solid var(--brand-leaf); outline-offset: 3px; }
+    .editor-body { padding: 20px 22px 22px; }
+    .platforms { display: flex; gap: 8px; margin-bottom: 10px; }
+    .platform { flex: 1; min-height: 42px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-soft); color: var(--muted); font-size: 14px; opacity: 1; }
+    .platform.is-active { background: var(--brand-primary); color: var(--surface); border-color: var(--brand-primary); box-shadow: inset 0 -3px var(--brand-yellow); }
+    .platform-note { margin: 0 0 12px; font-size: 11px; color: var(--muted); }
+    .editor-options .post-options { margin: 0 0 20px; }
+    .editor-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 9px; }
+    .post-content { min-height: 436px; padding: 18px; font-size: 15px; }
+    .post-count { margin: 8px 0 0; color: var(--muted); font-size: 12px; text-align: right; }
+    .post-count.is-over { color: var(--over-limit); font-weight: 600; }
+    .editor-footnote { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+    .writing-note { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 18px; }
+    .writing-note strong { display: block; font-size: 12px; font-weight: 600; color: var(--brand-leaf); }
+    .writing-note p { margin: 6px 0 0; font-family: "Songti TC", "Noto Serif TC", serif; font-size: 16px; line-height: 1.9; }
+    .preview-panel { padding-bottom: 22px; }
+    .preview-body { padding: 24px 18px 0; }
+    .phone { width: 100%; max-width: 285px; min-height: 548px; margin: 0 auto; padding: 10px; border: 5px solid var(--phone-edge); border-radius: 38px; background: var(--surface); box-shadow: 0 14px 30px var(--shadow); }
+    .phone-top { position: relative; height: 34px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; font-size: 10px; }
+    .speaker { position: absolute; width: 64px; height: 14px; border-radius: 12px; background: var(--phone-edge); left: 50%; top: 0; transform: translateX(-50%); }
+    .phone-feed-title { text-align: center; font-size: 13px; font-weight: 600; padding: 8px 0 14px; border-bottom: 1px solid var(--line); }
+    .profile { display: flex; gap: 10px; align-items: center; padding: 20px 8px 16px; }
+    .avatar { flex: 0 0 36px; height: 36px; border-radius: 50%; background: var(--brand-primary); color: var(--surface); display: grid; place-items: center; font-family: "Songti TC", serif; font-size: 19px; }
+    .account { font-size: 13px; font-weight: 600; }
+    .profile-note { color: var(--muted); font-size: 10px; }
+    .preview-copy { margin: 0; padding: 0 8px; font-size: 13px; line-height: 1.95; }
+    .preview-placeholder { margin: 22px 8px; min-height: 196px; background: var(--surface-soft); border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; color: var(--muted); font-size: 12px; }
+    .placeholder-symbol { color: var(--brand-leaf); font-family: "Songti TC", serif; font-size: 28px; }
+    .preview-actions { margin: 0 8px; padding: 12px 0; display: flex; justify-content: space-around; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .home-indicator { width: 84px; height: 4px; margin: 22px auto 0; border-radius: 4px; background: var(--phone-edge); }
+    .preview-caption { margin: 18px 0 0; text-align: center; color: var(--muted); font-size: 11px; line-height: 1.9; }
+    .phone-screen { min-height: 455px; background: var(--surface); }
+    .phone-screen .profile { padding: 14px 8px; }
+    .preview-post-text { padding: 0 8px 14px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.8; }
+    .preview-empty { color: var(--preview-hint); }
+    .preview-media { margin: 0 8px 14px; border: 1px dashed var(--line); border-radius: 6px; background: var(--surface-soft); color: var(--brand-primary); display: grid; place-items: center; text-align: center; padding: 14px; overflow-wrap: anywhere; }
+    .preview-media.wide { aspect-ratio: 4 / 3; }
+    .preview-media.square { aspect-ratio: 1 / 1; font-family: "Songti TC", "Noto Serif TC", serif; font-size: 22px; font-weight: 600; }
+    .preview-media .preview-empty { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 12px; font-weight: 400; }
+    .ig-actions { padding: 0 10px 14px; font-size: 21px; letter-spacing: 8px; }
+    .line-screen { min-height: 455px; padding: 22px 10px; background: var(--chat-bg); }
+    .line-chat { display: flex; gap: 8px; align-items: flex-start; }
+    .line-bubble { flex: 1; padding: 12px; border-radius: 4px 14px 14px 14px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.8; }
+    .threads-post { display: flex; gap: 9px; padding: 18px 8px; }
+    .threads-post .preview-post-text { padding: 4px 0 0; }
+    @media (min-width: 1101px) {
+      .material-fields { max-height: calc(100dvh - 280px); min-height: 440px; overflow-y: auto; scrollbar-color: var(--brand-sprout) var(--surface-soft); scrollbar-width: thin; }
+    }
+    @media (max-width: 1100px) {
+      .columns { grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.25fr); }
+      .preview-panel { grid-column: 2; }
+      .material-panel { grid-row: span 2; }
+      .workspace { padding: 24px; }
+    }
+    @media (max-width: 720px) {
+      .topbar { padding: 20px; min-height: 80px; flex-wrap: wrap; }
+      .topbar-actions { gap: 8px; width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+      .topbar-note { display: none; }
+      h1 { font-size: 18px; }
+      .brand-mark { display: none; }
+      .topbar-note { font-size: 11px; }
+      .workspace { padding: 22px 16px; }
+      .intro { display: block; }
+      .intro-title { font-size: 19px; }
+      .intro-note { margin-top: 6px !important; }
+      .columns { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+      .material-panel { grid-row: auto; }
+      .preview-panel { grid-column: auto; }
+      .post-content { min-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-heading"><span class="brand-mark" aria-hidden="true" data-brand-mark></span><h1 id="page-title"></h1></div>
+    <div class="topbar-actions"><span class="topbar-note">版面預覽</span><button class="workbench-button" id="open-saved" type="button">📁 我的貼文</button><button class="workbench-button" id="new-article" type="button">＋ 新的一篇</button><button class="workbench-button" id="open-settings" type="button">⚙ 設定</button></div>
+  </header>
+  <main class="workspace">
+    <div class="intro">
+      <p class="intro-title">把日常整理好，慢慢寫成故事。</p>
+      <p class="intro-note">先整理素材，再寫一篇想分享的貼文。</p>
+    </div>
+    <div class="columns">
+      <section class="panel material-panel" aria-labelledby="material-title">
+        <div class="panel-heading">
+          <div class="heading-line"><h2 id="material-title">素材卡</h2><span class="badge" id="field-count"></span></div>
+          <p class="panel-description">所有欄位皆可留白，挑選這次想分享的內容。</p>
+        </div>
+        <form class="material-fields" id="material-form" aria-label="素材卡表單"></form>
+        <div class="material-actions"><button class="workbench-button" id="build-prompt" type="button">🧩 組好指令</button><button class="workbench-button" id="save-article" type="button">💾 存檔</button><p class="save-status" id="save-status" role="status"></p></div>
+      </section>
+      <section class="panel" aria-labelledby="editor-title">
+        <div class="panel-heading">
+          <div class="heading-line"><h2 id="editor-title">貼文編輯</h2><span class="badge">草稿區</span></div>
+          <p class="panel-description">留一點空白，讓想說的話慢慢成形。</p>
+        </div>
+        <div class="editor-body">
+          <div class="platforms" id="platforms" role="tablist" aria-label="貼文平台"></div>
+          <p class="platform-note" id="platform-note"></p>
+          <div class="editor-options" id="editor-options"></div>
+          <label class="editor-label" for="post-content">貼文內容</label>
+          <textarea id="post-content" class="post-content" placeholder="在這裡寫下你的貼文內容……"></textarea>
+          <p class="post-count" id="post-count" role="status" aria-live="polite"></p>
+          <p class="editor-footnote">各平台草稿會自動暫存在這個瀏覽器；手機預覽會跟著編輯更新。</p>
+          <aside class="writing-note" aria-label="品牌寫作提醒">
+            <strong>寫給旅人的一點留白</strong>
+            <p>先寫看得見的小事，再輕輕邀請。</p>
+          </aside>
+        </div>
+      </section>
+      <section class="panel preview-panel" aria-labelledby="preview-title">
+        <div class="panel-heading">
+          <div class="heading-line"><h2 id="preview-title">手機預覽</h2><span class="badge">即時預覽</span></div>
+          <p class="panel-description">看看貼文在手機裡的閱讀感覺。</p>
+        </div>
+        <div class="preview-body">
+          <div class="phone" aria-label="手機貼文預覽">
+            <div class="phone-top"><span>九點四十一分</span><span class="speaker" aria-hidden="true"></span><span>滿電</span></div>
+            <div id="phone-screen" class="phone-screen" aria-live="polite"></div>
+            <div class="home-indicator" aria-hidden="true"></div>
+          </div>
+          <p class="preview-caption">手機畫面會隨平台與文字更新。<br>此處僅供預覽，不會發布貼文。</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <dialog class="workbench-dialog" id="settings-dialog" aria-labelledby="settings-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="settings-title">設定</h2><button class="dialog-close" type="button" data-close="settings-dialog" aria-label="關閉設定">×</button></div>
+      <label class="dialog-field" for="brand-specification">品牌規格</label>
+      <textarea class="dialog-textarea" id="brand-specification" placeholder="在這裡貼上品牌規格全文"></textarea>
+      <label class="dialog-field" for="review-checklist">檢查清單</label>
+      <textarea class="dialog-textarea" id="review-checklist" placeholder="在這裡貼上檢查清單全文"></textarea>
+      <div class="dialog-actions"><button class="workbench-button" id="save-settings" type="button">儲存</button><p class="dialog-status" id="settings-status" role="status"></p></div>
+    </div>
+  </dialog>
+  <dialog class="workbench-dialog" id="prompt-dialog" aria-labelledby="prompt-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="prompt-title">組好的指令</h2><div class="dialog-head-actions"><button class="workbench-button" id="copy-prompt" type="button">複製</button><button class="dialog-close" type="button" data-close="prompt-dialog" aria-label="關閉指令">×</button></div></div>
+      <textarea class="dialog-textarea prompt-textarea" id="assembled-prompt" readonly aria-label="組好的指令"></textarea>
+      <p class="dialog-status" id="copy-status" role="status"></p>
+    </div>
+  </dialog>
+  <dialog class="workbench-dialog" id="saved-dialog" aria-labelledby="saved-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="saved-title">我的貼文</h2><button class="dialog-close" type="button" data-close="saved-dialog" aria-label="關閉我的貼文">×</button></div>
+      <div class="saved-list" id="saved-list"></div>
+      <p class="dialog-status" id="saved-status" role="status"></p>
+    </div>
+  </dialog>
+  <script>
+    // ── 可自行修改的設定：品牌、平台、素材卡欄位 ──
+    const BRAND = {
+      name: "松風",
+      footerName: "松風民宿",
+      accountName: "松風",
+      address: "臺東縣鹿野鄉龍田村龍馬路95巷17號",
+      phone: "0987 425 930"
+    };
+
+    const PLATFORMS = [
+      { id: "fb", label: "FB", accountName: BRAND.accountName, status: "帳號名稱已提供", maxLength: 320 },
+      { id: "ig", label: "IG", accountName: "", status: "尚未開通", maxLength: 160 },
+      { id: "line", label: "LINE", accountName: "", status: "尚未開通", maxLength: 140 }
+    ];
+
+    const MATERIAL_FIELDS = [
+      { id: "post-topic", label: "貼文主題", required: false, example: "這篇想談什麼？例如：龍田慢旅" },
+      { id: "do-not-mention", label: "先不要講的", required: false, example: "填入這篇貼文不能透露的內容；不會當成可寫進貼文的素材。" },
+      { id: "limited-event", label: "時間限定活動", required: false, example: "這段時間來龍田，可以留意正在舉辦的在地活動。出發前先確認日期與報名方式，再替旅程留一點空白。" },
+      { id: "local-life", label: "在地日常", required: false, example: "早上的龍田，適合慢慢走一段路。看看田、吹吹風，遇到喜歡的風景就停一下。" },
+      { id: "balloon-festival", label: "熱氣球嘉年華", required: false, example: "看完熱氣球，也留一點時間給龍田。避開趕路的節奏，午後找個地方坐下來喝杯茶。" },
+      { id: "host-life", label: "老闆、小幫手日常", required: false, example: "旅人抵達前，我們會先把房間整理好。這些平常不太被看見的小事，也是松風的一天。" },
+      { id: "handmade-produce", label: "小幫手的手作農產品", required: false, example: "今天想分享小幫手親手做的一樣東西。從選材料到完成，每一步都有自己的時間與心意。" },
+      { id: "taitung-events", label: "台東在地活動", required: false, example: "來台東前，可以先看看這週有什麼活動。選一場感興趣的參加，其餘時間留給路上的風景。" },
+      { id: "stay", label: "民宿內在", required: false, example: "來松風，可以先把行李放下，好好休息。明天想去哪裡，等睡醒再慢慢決定。" },
+      { id: "workshops", label: "手作教室", required: false, example: "動手做一件小東西，會記得這趟旅行裡的觸感。若有開課，我們會把內容、時間與報名方式說清楚。" }
+    ];
+
+    const POST_OPTIONS = [
+      { title: "文尾", items: [{ id: "name", label: "民宿名" }, { id: "address", label: "地址" }, { id: "phone", label: "電話" }] },
+      { title: "內文", items: [{ id: "emoji", label: "表情符號" }, { id: "bilingual", label: "中英文" }, { id: "tags", label: "標籤" }] }
+    ];
+    // 關鍵字僅用於表情符號及標籤；英文由瀏覽器翻譯實際內文。
+    const CONTENT_RULES = [
+      { match: /熱氣球/, emoji: "🎈", tag: "熱氣球嘉年華" },
+      { match: /手作|動手做/, emoji: "👐", tag: "手作日常" },
+      { match: /茶|紅烏龍/, emoji: "🍵", tag: "紅烏龍" },
+      { match: /田|散步|慢慢走|綠蔭/, emoji: "🌿", tag: "龍田日常" },
+      { match: /活動|報名/, emoji: "📅", tag: "台東活動" },
+      { match: /房間|行李|休息|民宿/, emoji: "🏡", tag: "民宿日常" }
+    ];
+
+    // ── 初始畫面及左側選項連動；不儲存、不發布 ──
+    document.title = `${BRAND.name}｜社群工作台`;
+    document.getElementById("page-title").textContent = `${BRAND.name}v2｜社群工作台`;
+    document.querySelectorAll("[data-brand-mark]").forEach(element => {
+      element.textContent = [...BRAND.name][0] || "";
+    });
+    const requiredCount = MATERIAL_FIELDS.filter(field => field.required).length;
+    document.getElementById("field-count").textContent = requiredCount
+      ? `${MATERIAL_FIELDS.length} 個欄位・${requiredCount} 個必填`
+      : `${MATERIAL_FIELDS.length} 個欄位・皆選填`;
+
+    MATERIAL_FIELDS.forEach(field => {
+      const container = document.createElement("div");
+      container.className = "field";
+      const label = document.createElement("label");
+      label.htmlFor = field.id;
+      const name = document.createElement("span");
+      name.textContent = field.label;
+      const requirement = document.createElement("span");
+      requirement.className = "required";
+      requirement.textContent = field.required ? "必填" : "選填";
+      label.append(name, requirement);
+      const input = document.createElement("textarea");
+      input.id = field.id;
+      input.name = field.id;
+      input.required = field.required;
+      input.rows = field.rows || 4;
+      input.value = field.defaultValue || "";
+      input.placeholder = `例：${field.example}`;
+      input.addEventListener("input", saveWorkingDraft);
+      container.append(label, input);
+      document.getElementById("material-form").append(container);
+    });
+
+    let activePlatformId = PLATFORMS[0].id;
+    const platformButtons = {};
+    PLATFORMS.forEach((platform, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `platform${index === 0 ? " is-active" : ""}`;
+      button.textContent = platform.label;
+      button.id = `platform-${platform.id}`;
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(index === 0));
+      button.setAttribute("aria-controls", "post-content");
+      button.tabIndex = index === 0 ? 0 : -1;
+      button.title = platform.status;
+      button.addEventListener("click", () => switchPlatform(platform.id));
+      button.addEventListener("keydown", event => {
+        const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        let next = index;
+        if (event.key === "ArrowLeft") next = (index + PLATFORMS.length - 1) % PLATFORMS.length;
+        if (event.key === "ArrowRight") next = (index + 1) % PLATFORMS.length;
+        if (event.key === "Home") next = 0;
+        if (event.key === "End") next = PLATFORMS.length - 1;
+        switchPlatform(PLATFORMS[next].id);
+        platformButtons[PLATFORMS[next].id].focus();
+      });
+      platformButtons[platform.id] = button;
+      document.getElementById("platforms").append(button);
+    });
+    document.getElementById("platform-note").textContent = PLATFORMS.map(platform =>
+      `${platform.label}：${platform.accountName || platform.status}`
+    ).join("　／　");
+
+    const optionsPanel = document.createElement("fieldset");
+    optionsPanel.className = "post-options";
+    const optionsLegend = document.createElement("legend");
+    optionsLegend.textContent = "加入一些裝飾（選填）";
+    optionsPanel.append(optionsLegend);
+    const optionInputs = {};
+    POST_OPTIONS.forEach(group => {
+      const row = document.createElement("div");
+      row.className = "option-row";
+      const rowTitle = document.createElement("span");
+      rowTitle.className = "option-row-title";
+      rowTitle.textContent = group.title;
+      row.append(rowTitle);
+      group.items.forEach(item => {
+        const label = document.createElement("label");
+        label.className = "option-choice";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = `option-${item.id}`;
+        checkbox.setAttribute("aria-label", `${group.title}加入${item.label}`);
+        const caption = document.createElement("span");
+        caption.textContent = item.label;
+        label.append(checkbox, caption);
+        row.append(label);
+        optionInputs[item.id] = checkbox;
+        checkbox.addEventListener("change", () => applyOptions());
+      });
+      optionsPanel.append(row);
+    });
+    const optionHelp = document.createElement("p");
+    optionHelp.className = "option-help";
+    optionHelp.textContent = "勾選後會把裝飾加入中間貼文，再顯示在手機預覽。素材卡內容不會直接進入預覽。中英文採中文在上、英文在下；需使用支援內建翻譯的電腦版 Chrome，首次使用會下載語言模型。";
+    const optionStatus = document.createElement("p");
+    optionStatus.className = "option-status";
+    optionStatus.setAttribute("role", "status");
+    optionStatus.setAttribute("aria-live", "polite");
+    optionsPanel.append(optionHelp, optionStatus);
+    document.getElementById("editor-options").append(optionsPanel);
+    document.getElementById("material-form").addEventListener("submit", event => event.preventDefault());
+
+    const postEditor = document.getElementById("post-content");
+    function previewElement(tag, className = "", value = "") {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      element.textContent = value;
+      return element;
+    }
+
+    function renderPreview() {
+      const screen = document.getElementById("phone-screen");
+      const platform = PLATFORMS.find(item => item.id === activePlatformId);
+      const count = [...postEditor.value].length;
+      const countDisplay = document.getElementById("post-count");
+      const overLimit = count > platform.maxLength;
+      countDisplay.textContent = `目前 ${count} 字／${platform.label} 建議上限 ${platform.maxLength} 字${overLimit ? "，超過了" : ""}`;
+      countDisplay.classList.toggle("is-over", overLimit);
+      const content = postEditor.value.trim();
+      const body = previewElement("div", "preview-post-text", content || "貼文內容會出現在這裡");
+      if (!content) body.classList.add("preview-empty");
+      const account = platform.accountName || BRAND.accountName;
+      const profile = () => {
+        const row = previewElement("div", "profile");
+        row.append(previewElement("div", "avatar", [...BRAND.name][0] || ""));
+        const details = previewElement("div");
+        details.append(previewElement("div", "account", account));
+        if (activePlatformId === "fb") details.append(previewElement("div", "profile-note", "剛剛"));
+        row.append(details);
+        return row;
+      };
+      const media = (shape, text) => {
+        const box = previewElement("div", `preview-media ${shape}`);
+        box.append(previewElement("span", text ? "" : "preview-empty", text || "圖片位置"));
+        return box;
+      };
+      screen.className = `phone-screen${activePlatformId === "line" ? " line-screen" : ""}`;
+      screen.replaceChildren();
+      if (activePlatformId === "fb") {
+        const actions = previewElement("div", "preview-actions");
+        ["讚", "留言", "分享"].forEach(label => actions.append(previewElement("span", "", label)));
+        screen.append(profile(), body, media("wide", ""), actions);
+      } else if (activePlatformId === "ig") {
+        const caption = previewElement("div", "preview-post-text");
+        caption.append(previewElement("strong", "", account + "　"), body);
+        screen.append(profile(), media("square", ""), previewElement("div", "ig-actions", "♡ 💬 ➤"), caption);
+      } else if (activePlatformId === "line") {
+        const row = previewElement("div", "line-chat");
+        row.append(previewElement("div", "avatar", [...BRAND.name][0] || ""));
+        const bubble = previewElement("div", "line-bubble", content || "貼文內容會出現在這裡");
+        if (!content) bubble.classList.add("preview-empty");
+        row.append(bubble);
+        screen.append(row);
+      }
+    }
+
+    let generatedRanges = [];
+    let previousOutput = postEditor.value;
+    let revision = 0;
+    let translatorPromise = null;
+    let translationCache = { source: "", result: "" };
+    const drafts = Object.fromEntries(PLATFORMS.map(platform => [platform.id, {
+      text: "", ranges: [], options: {}, status: ""
+    }]));
+
+    function switchPlatform(nextId) {
+      if (nextId === activePlatformId) return;
+      ++revision; // 舊平台仍在處理中的翻譯不可寫入新平台。
+      drafts[activePlatformId] = {
+        text: postEditor.value,
+        ranges: generatedRanges.map(range => ({ ...range })),
+        options: Object.fromEntries(Object.entries(optionInputs).map(([id, input]) => [id, input.checked])),
+        status: optionStatus.textContent
+      };
+      activePlatformId = nextId;
+      const draft = drafts[nextId];
+      postEditor.value = draft.text;
+      previousOutput = draft.text;
+      generatedRanges = draft.ranges.map(range => ({ ...range }));
+      Object.entries(optionInputs).forEach(([id, input]) => { input.checked = Boolean(draft.options[id]); });
+      optionStatus.textContent = draft.status;
+      PLATFORMS.forEach(platform => {
+        const selected = platform.id === nextId;
+        const button = platformButtons[platform.id];
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-selected", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+      });
+      // 草稿中若有尚未完成的翻譯，回來時再補上。
+      if (optionInputs.bilingual.checked && readBaseText() &&
+          !generatedRanges.some(range => range.key === "bilingual")) applyOptions(false);
+      renderPreview();
+      saveWorkingDraft();
+    }
+
+    // 只移除程式加入且未被使用者改寫的區段，保留手動輸入的內容。
+    function readBaseText() {
+      let text = postEditor.value;
+      [...generatedRanges].reverse().forEach(range => {
+        if (text.slice(range.start, range.end) === range.text) {
+          text = text.slice(0, range.start) + text.slice(range.end);
+        }
+      });
+      return text.trim();
+    }
+
+    function renderPost(base, english = "") {
+      let output = "";
+      const ranges = [];
+      function addGenerated(text, key) {
+        const start = output.length;
+        output += text;
+        ranges.push({ start, end: output.length, text, key });
+      }
+      const matchingRules = CONTENT_RULES.filter(rule => rule.match.test(base));
+      if (optionInputs.emoji.checked && base && !/\p{Extended_Pictographic}/u.test(base)) {
+        addGenerated(`${matchingRules[0]?.emoji || "🌿"} `, "emoji");
+      }
+      output += base;
+      if (optionInputs.bilingual.checked && english) {
+        addGenerated(`\n\n${english}`, "bilingual");
+      }
+      if (optionInputs.tags.checked && base) {
+        const existingTags = new Set((base.match(/[#＃][\p{L}\p{N}_]+/gu) || []).map(tag => tag.slice(1)));
+        const candidates = [BRAND.footerName, matchingRules[0]?.tag || "龍田旅行", "台東鹿野"];
+        const tags = [...new Set(candidates)].filter(tag => !existingTags.has(tag)).map(tag => `#${tag}`);
+        if (tags.length) addGenerated(`\n\n${tags.join(" ")}`, "tags");
+      }
+      let firstFooter = true;
+      const footer = { name: `🍃${BRAND.footerName}`, phone: `📱${BRAND.phone}`, address: `🏠${BRAND.address}` };
+      Object.entries(footer).forEach(([key, text]) => {
+        if (!optionInputs[key].checked || base.split("\n").some(line => line.trim() === text)) return;
+        const separator = output ? (firstFooter ? "\n\n" : "\n") : "";
+        addGenerated(separator + text, key);
+        firstFooter = false;
+      });
+      postEditor.value = output;
+      previousOutput = output;
+      generatedRanges = ranges;
+      renderPreview();
+      saveWorkingDraft();
+    }
+
+    async function applyOptions() {
+      const request = ++revision;
+      const base = readBaseText();
+      const cachedEnglish = translationCache.source === base ? translationCache.result : "";
+      renderPost(base, cachedEnglish);
+      optionStatus.textContent = base ? "已更新貼文內容。" : "請先在中間貼文內容輸入文字，再勾選內文選項。";
+      if (!optionInputs.bilingual.checked || !base || cachedEnglish) return;
+      if (!("Translator" in globalThis)) {
+        optionInputs.bilingual.checked = false;
+        optionStatus.textContent = "此瀏覽器不支援自動翻譯。請使用支援內建翻譯的電腦版 Chrome 開啟此檔案後再試；中文與其他選項已保留。";
+        return;
+      }
+      optionStatus.textContent = "正在準備英文翻譯；首次使用可能需要下載語言模型……";
+      try {
+        // 在勾選事件內建立翻譯器，符合瀏覽器的使用者操作要求。
+        if (!translatorPromise) {
+          translatorPromise = globalThis.Translator.create({
+            sourceLanguage: "zh-Hant", targetLanguage: "en",
+            monitor(monitor) {
+              monitor.addEventListener("downloadprogress", event => {
+                if (request === revision) optionStatus.textContent = `正在準備翻譯模型：${Math.round(event.loaded * 100)}％`;
+              });
+            }
+          });
+        }
+        const translator = await translatorPromise;
+        if (request !== revision) return;
+        optionStatus.textContent = "正在翻譯，中文原文會保留……";
+        const english = (await translator.translate(base)).trim();
+        if (request !== revision || !optionInputs.bilingual.checked) return;
+        if (!english || english === base) throw new Error("未取得有效譯文");
+        translationCache = { source: base, result: english };
+        renderPost(base, english);
+        optionStatus.textContent = "已加入英文翻譯：中文在上、英文在下。自動譯文請於發布前確認語意。";
+      } catch (error) {
+        if (request !== revision) return;
+        translatorPromise = null;
+        optionInputs.bilingual.checked = false;
+        renderPost(base);
+        optionStatus.textContent = "英文翻譯未完成，中文與其他選項已保留。請確認瀏覽器支援、網路及模型下載狀態，再勾選重試。";
+      }
+    }
+
+    postEditor.addEventListener("input", () => {
+      ++revision; // 讓進行中的舊翻譯失效，避免覆蓋新輸入。
+      const current = postEditor.value;
+      let start = 0;
+      while (start < previousOutput.length && start < current.length && previousOutput[start] === current[start]) start++;
+      let oldEnd = previousOutput.length;
+      let newEnd = current.length;
+      while (oldEnd > start && newEnd > start && previousOutput[oldEnd - 1] === current[newEnd - 1]) { oldEnd--; newEnd--; }
+      const shift = newEnd - oldEnd;
+      generatedRanges = generatedRanges.flatMap(range => {
+        if (range.end <= start) return [range];
+        if (range.start >= oldEnd) return [{ ...range, start: range.start + shift, end: range.end + shift }];
+        // 已手動改寫的附加內容改由使用者管理，不再自動刪除。
+        optionInputs[range.key].checked = false;
+        return [];
+      });
+      previousOutput = current;
+      if (Object.values(optionInputs).some(input => input.checked)) {
+        const cursor = postEditor.selectionStart;
+        const removedBeforeCursor = generatedRanges
+          .filter(range => range.end <= cursor)
+          .reduce((length, range) => length + range.text.length, 0);
+        const baseCursor = Math.max(0, cursor - removedBeforeCursor);
+        renderPost(readBaseText());
+        const prefixLength = generatedRanges.find(range => range.key === "emoji" && range.start === 0)?.text.length || 0;
+        if (Number.isInteger(cursor)) postEditor.setSelectionRange(baseCursor + prefixLength, baseCursor + prefixLength);
+      } else {
+        renderPreview();
+      }
+      if (optionInputs.bilingual.checked) {
+        optionStatus.textContent = "內文已修改；請取消再勾選「中英文」，重新翻譯最新內容。";
+      } else {
+        optionStatus.textContent = "已更新貼文內容。";
+      }
+      saveWorkingDraft();
+    });
+    renderPreview();
+
+    const SETTINGS_KEY = "songfeng-social-workbench-settings-v1";
+    let settings = { brandSpecification: "", reviewChecklist: "" };
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      if (saved && typeof saved === "object") {
+        if (typeof saved.brandSpecification === "string") settings.brandSpecification = saved.brandSpecification;
+        if (typeof saved.reviewChecklist === "string") settings.reviewChecklist = saved.reviewChecklist;
+      }
+    } catch (error) {
+      // 設定仍可在目前頁面編輯；儲存時會顯示瀏覽器的限制。
+    }
+
+    const settingsDialog = document.getElementById("settings-dialog");
+    const promptDialog = document.getElementById("prompt-dialog");
+    document.getElementById("open-settings").addEventListener("click", () => {
+      document.getElementById("brand-specification").value = settings.brandSpecification;
+      document.getElementById("review-checklist").value = settings.reviewChecklist;
+      document.getElementById("settings-status").textContent = "";
+      settingsDialog.showModal();
+    });
+    document.getElementById("save-settings").addEventListener("click", () => {
+      const next = {
+        brandSpecification: document.getElementById("brand-specification").value,
+        reviewChecklist: document.getElementById("review-checklist").value
+      };
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+        settings = next;
+        settingsDialog.close();
+      } catch (error) {
+        document.getElementById("settings-status").textContent = "此瀏覽器無法儲存設定，請檢查瀏覽器的儲存權限。";
+      }
+    });
+    document.querySelectorAll("[data-close]").forEach(button => {
+      button.addEventListener("click", () => document.getElementById(button.dataset.close).close());
+    });
+
+    function addWeekdays(text) {
+      const taiwanYear = Number(new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Taipei", year: "numeric"
+      }).format(new Date()));
+      const formatDate = (source, year, month, day) => {
+        const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+        if (date.getUTCFullYear() !== Number(year) || date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day)) return source;
+        return `${year}/${month.padStart(2, "0")}/${day.padStart(2, "0")}（${"日一二三四五六"[date.getUTCDay()]}）`;
+      };
+      const withYears = text.replace(/(20\d{2})\s*[年\-/\. ]\s*(\d{1,2})\s*[月\-/\. ]\s*(\d{1,2})(?!\d)(?:\s*日)?(?!\s*日?\s*[（(][日一二三四五六][）)])/g,
+        (source, year, month, day) => formatDate(source, year, month, day));
+      return withYears.replace(/(?<![\d年\/\.\-])(\d{1,2})\s*[月\/\.\-]\s*(\d{1,2})(?!\d)(?:\s*日)?(?!\s*日?\s*[（(][日一二三四五六][）)])/g,
+        (source, month, day) => formatDate(source, String(taiwanYear), month, day));
+    }
+
+    function assemblePrompt() {
+      const platforms = PLATFORMS.map(platform => platform.label);
+      const excluded = document.getElementById("do-not-mention").value.trim();
+      const material = MATERIAL_FIELDS.filter(field => field.id !== "do-not-mention").map(field => {
+        const value = document.getElementById(field.id).value.trim();
+        return `${field.label}：${value || "（未填）"}`;
+      }).join("\n\n");
+      const parts = [
+        "（這段只要回覆文字，不要建立或修改任何檔案。）",
+        `你是【${BRAND.name}】的小編。請照品牌規格，用素材卡的內容，寫【${platforms.join("、")}】的貼文，每個平台一篇。`,
+        "規則：\n- 素材卡上沒有的事不要寫。\n- 只能在某個平台說的，只寫在那個平台。\n- 凡貼文提到日期，都要核對並標出正確星期幾；沒寫年份的月日，一律以台灣當下的西元年份計算。\n- 先不要講的內容，每一篇都不能寫，也不能換句話說、放進標籤或列在回覆裡。\n- 還不確定的不要寫，寫完列出來問我。",
+        `回覆格式：\n${platforms.map(platform => `【${platform}】`).join("\n")}`,
+        `品牌規格：\n${settings.brandSpecification || "（尚未填寫）"}`,
+        `素材卡：\n${material}`
+      ];
+      if (excluded) parts.push(`先不要講的（以下僅供避開，絕不可寫進任何貼文、標籤或回覆）：\n${excluded}`);
+      if (settings.reviewChecklist.trim()) {
+        parts.push(`寫完照這張清單檢查，有 ❌ 先自己改好\n${settings.reviewChecklist}`);
+      }
+      return addWeekdays(parts.join("\n\n"));
+    }
+
+    document.getElementById("build-prompt").addEventListener("click", () => {
+      document.getElementById("assembled-prompt").value = assemblePrompt();
+      document.getElementById("copy-status").textContent = "";
+      promptDialog.showModal();
+    });
+    document.getElementById("copy-prompt").addEventListener("click", async () => {
+      const prompt = document.getElementById("assembled-prompt");
+      try {
+        if (!navigator.clipboard?.writeText) throw new Error("無法使用剪貼簿");
+        await navigator.clipboard.writeText(prompt.value);
+        document.getElementById("copy-status").textContent = "已複製指令。";
+      } catch (error) {
+        prompt.focus();
+        prompt.select();
+        let copied = false;
+        try { copied = document.execCommand("copy"); } catch (copyError) { /* 文字已選取，可手動複製。 */ }
+        document.getElementById("copy-status").textContent = copied ? "已複製指令。" : "無法自動複製，已選取文字，請按複製快捷鍵。";
+      }
+    });
+
+    const ARTICLES_KEY = "songfeng-social-workbench-articles-v1";
+    const WORKING_KEY = "songfeng-social-workbench-working-v1";
+    let savedPosts = [];
+    let currentSavedId = null;
+    try {
+      const stored = JSON.parse(localStorage.getItem(ARTICLES_KEY));
+      if (Array.isArray(stored)) {
+        savedPosts = stored.filter(item => item && typeof item.id === "string" &&
+          typeof item.name === "string" && typeof item.savedAt === "string" && item.payload);
+      }
+    } catch (error) {
+      document.getElementById("save-status").textContent = "無法讀取已存貼文，請檢查瀏覽器儲存權限。";
+    }
+
+    function captureArticle() {
+      drafts[activePlatformId] = {
+        text: postEditor.value,
+        ranges: generatedRanges.map(range => ({ ...range })),
+        options: Object.fromEntries(Object.entries(optionInputs).map(([id, input]) => [id, input.checked])),
+        status: optionStatus.textContent
+      };
+      return {
+        fields: Object.fromEntries(MATERIAL_FIELDS.map(field => [field.id, document.getElementById(field.id).value])),
+        drafts: Object.fromEntries(PLATFORMS.map(platform => [platform.id, {
+          text: drafts[platform.id].text,
+          ranges: drafts[platform.id].ranges.map(range => ({ ...range })),
+          options: { ...drafts[platform.id].options },
+          status: drafts[platform.id].status
+        }])),
+        activePlatformId
+      };
+    }
+
+    function saveWorkingDraft() {
+      try {
+        localStorage.setItem(WORKING_KEY, JSON.stringify({ savedId: currentSavedId, payload: captureArticle() }));
+        document.getElementById("save-status").textContent = currentSavedId
+          ? "已自動暫存；按「存檔」會在我的貼文新增一筆紀錄。" : "已自動暫存。";
+        return true;
+      } catch (error) {
+        document.getElementById("save-status").textContent = "自動暫存失敗，請檢查瀏覽器儲存權限。";
+        return false;
+      }
+    }
+
+    function restoreArticle(payload, savedId = null) {
+      ++revision; // 避免舊文章尚未完成的翻譯寫入新文章。
+      currentSavedId = savedId;
+      MATERIAL_FIELDS.forEach(field => {
+        document.getElementById(field.id).value = typeof payload?.fields?.[field.id] === "string"
+          ? payload.fields[field.id] : "";
+      });
+      PLATFORMS.forEach(platform => {
+        const source = payload?.drafts?.[platform.id];
+        drafts[platform.id] = {
+          text: typeof source?.text === "string" ? source.text : "",
+          ranges: Array.isArray(source?.ranges) ? source.ranges.filter(range =>
+            Number.isInteger(range.start) && Number.isInteger(range.end) &&
+            typeof range.text === "string" && typeof range.key === "string"
+          ).map(range => ({ ...range })) : [],
+          options: source?.options && typeof source.options === "object" ? { ...source.options } : {},
+          status: typeof source?.status === "string" ? source.status : ""
+        };
+      });
+      activePlatformId = PLATFORMS.some(platform => platform.id === payload?.activePlatformId)
+        ? payload.activePlatformId : PLATFORMS[0].id;
+      const active = drafts[activePlatformId];
+      postEditor.value = active.text;
+      previousOutput = active.text;
+      generatedRanges = active.ranges.map(range => ({ ...range }));
+      Object.entries(optionInputs).forEach(([id, input]) => { input.checked = Boolean(active.options[id]); });
+      optionStatus.textContent = active.status;
+      PLATFORMS.forEach(platform => {
+        const selected = platform.id === activePlatformId;
+        const button = platformButtons[platform.id];
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-selected", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+      });
+      renderPreview();
+    }
+
+    function taiwanDate(date) {
+      const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+      }).formatToParts(date).map(part => [part.type, part.value]));
+      return `${parts.year}/${parts.month}/${parts.day}`;
+    }
+
+    document.getElementById("save-article").addEventListener("click", () => {
+      const now = new Date();
+      const first = document.getElementById(MATERIAL_FIELDS[0].id).value.trim().replace(/\s+/g, " ");
+      const name = `${taiwanDate(now)}｜${first || "第一格未填"}`;
+      const id = globalThis.crypto?.randomUUID?.() || `post-${now.getTime()}-${Math.random()}`;
+      const article = { id, name, savedAt: now.toISOString(), payload: captureArticle() };
+      const next = savedPosts.concat(article);
+      try {
+        localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
+        savedPosts = next;
+        currentSavedId = id;
+        const drafted = saveWorkingDraft();
+        document.getElementById("save-status").textContent = drafted ? "已新增到「我的貼文」。" : "已新增到「我的貼文」，但自動暫存未成功。";
+      } catch (error) {
+        document.getElementById("save-status").textContent = "存檔失敗，請檢查瀏覽器儲存權限。";
+      }
+    });
+
+    const savedDialog = document.getElementById("saved-dialog");
+    function renderSavedList() {
+      const list = document.getElementById("saved-list");
+      list.replaceChildren();
+      document.getElementById("saved-status").textContent = "";
+      if (!savedPosts.length) {
+        list.append(previewElement("p", "dialog-status", "還沒有存過的貼文。"));
+        return;
+      }
+      [...savedPosts].sort((a, b) => b.savedAt.localeCompare(a.savedAt)).forEach(article => {
+        const row = previewElement("div", "saved-item");
+        const details = previewElement("div");
+        details.append(previewElement("div", "saved-item-name", article.name));
+        const time = new Date(article.savedAt);
+        details.append(previewElement("div", "saved-item-time", `存檔時間：${Number.isNaN(time.getTime()) ? article.savedAt : time.toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}`));
+        const actions = previewElement("div", "saved-item-actions");
+        const open = previewElement("button", "workbench-button", "打開");
+        open.type = "button";
+        open.addEventListener("click", () => {
+          restoreArticle(article.payload, article.id);
+          saveWorkingDraft();
+          savedDialog.close();
+          document.getElementById("save-status").textContent = "已打開存過的貼文。";
+        });
+        const remove = previewElement("button", "workbench-button", "刪除");
+        remove.type = "button";
+        remove.addEventListener("click", () => {
+          if (!window.confirm("確定嗎？")) return;
+          const next = savedPosts.filter(item => item.id !== article.id);
+          try {
+            localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
+            savedPosts = next;
+            if (currentSavedId === article.id) {
+              currentSavedId = null;
+              saveWorkingDraft(); // 畫面上的文字仍留著，只刪除已存清單中的那篇。
+            }
+            renderSavedList();
+          } catch (error) {
+            document.getElementById("saved-status").textContent = "刪除失敗，請檢查瀏覽器儲存權限。";
+          }
+        });
+        actions.append(open, remove);
+        row.append(details, actions);
+        list.append(row);
+      });
+    }
+    document.getElementById("open-saved").addEventListener("click", () => {
+      renderSavedList();
+      savedDialog.showModal();
+    });
+    document.getElementById("new-article").addEventListener("click", () => {
+      restoreArticle({ fields: {}, drafts: {}, activePlatformId: PLATFORMS[0].id });
+      saveWorkingDraft();
+      document.getElementById("save-status").textContent = "已開始新的一篇。";
+    });
+
+    try {
+      const working = JSON.parse(localStorage.getItem(WORKING_KEY));
+      if (working?.payload && typeof working.payload === "object") {
+        const savedId = savedPosts.some(item => item.id === working.savedId) ? working.savedId : null;
+        restoreArticle(working.payload, savedId);
+      }
+    } catch (error) {
+      document.getElementById("save-status").textContent = "無法讀取自動暫存，請檢查瀏覽器儲存權限。";
+    }
+  </script>
+</body>
+</html>
