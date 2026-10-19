@@ -288,7 +288,7 @@
 
     // ── 初始畫面及左側選項連動；不儲存、不發布 ──
     document.title = `${BRAND.name}｜社群工作台`;
-    document.getElementById("page-title").textContent = document.title;
+    document.getElementById("page-title").textContent = `${BRAND.name}v2｜社群工作台`;
     document.querySelectorAll("[data-brand-mark]").forEach(element => {
       element.textContent = [...BRAND.name][0] || "";
     });
