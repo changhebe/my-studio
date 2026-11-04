@@ -29,7 +29,7 @@
 
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--page); color: var(--text); font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 15px; line-height: 1.6; }
-    button, textarea { font: inherit; }
+    button, textarea, input, select { font: inherit; }
     .topbar { min-height: 92px; padding: 22px 32px; background: var(--brand-primary); color: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
     .brand-heading { display: flex; align-items: center; gap: 14px; }
     .brand-mark { width: 38px; height: 38px; border: 1px solid var(--brand-sprout); border-radius: 50%; display: grid; place-items: center; color: var(--brand-yellow); font-family: "Songti TC", serif; font-size: 21px; }
@@ -43,6 +43,9 @@
     .material-actions .workbench-button { width: 100%; }
     .material-actions .workbench-button + .workbench-button { margin-top: 8px; }
     .save-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    #ai-status { white-space: pre-line; overflow-wrap: anywhere; }
+    #ai-status.is-error { color: var(--over-limit); }
+    #write-with-ai:disabled { opacity: .55; background: var(--line); cursor: not-allowed; }
     .saved-list { max-height: 58dvh; overflow-y: auto; }
     .saved-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
     .saved-item-name { min-width: 0; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
@@ -58,6 +61,9 @@
     .dialog-close { border: 0; background: var(--clear); color: var(--muted); cursor: pointer; font: inherit; font-size: 23px; line-height: 1; }
     .dialog-field { display: block; margin: 16px 0 7px; font-weight: 600; font-size: 14px; }
     .dialog-textarea { min-height: 170px; max-height: 40dvh; }
+    .dialog-input { display: block; width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
+    .ai-settings-group { margin: 18px 0 0; padding: 8px 16px 16px; border: 1px solid var(--line); border-radius: 8px; }
+    .ai-settings-group legend { padding: 0 5px; font-weight: 600; }
     .prompt-textarea { min-height: 320px; max-height: 58dvh; }
     .dialog-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
     .dialog-status { margin: 0; color: var(--muted); font-size: 12px; }
@@ -93,7 +99,7 @@
     textarea { display: block; width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); resize: vertical; line-height: 1.8; }
     textarea::placeholder { color: var(--placeholder); opacity: 1; }
     .field textarea { min-height: 122px; font-size: 13px; background: var(--surface-soft); }
-    textarea:focus-visible, button:focus-visible { outline: 2px solid var(--brand-leaf); outline-offset: 3px; }
+    textarea:focus-visible, input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--brand-leaf); outline-offset: 3px; }
     .editor-body { padding: 20px 22px 22px; }
     .platforms { display: flex; gap: 8px; margin-bottom: 10px; }
     .platform { flex: 1; min-height: 42px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-soft); color: var(--muted); font-size: 14px; opacity: 1; }
@@ -104,6 +110,25 @@
     .post-content { min-height: 436px; padding: 18px; font-size: 15px; }
     .post-count { margin: 8px 0 0; color: var(--muted); font-size: 12px; text-align: right; }
     .post-count.is-over { color: var(--over-limit); font-weight: 600; }
+    .review-action { margin-top: 10px; }
+    .review-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; white-space: pre-line; }
+    .review-status.is-error { color: var(--over-limit); }
+    .review-report { max-height: 60dvh; overflow-y: auto; }
+    .review-line { margin: 0; padding: 5px 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .review-line.is-fail { background: #FCE8E6; }
+    .review-line.is-warning { background: #FFF3CD; }
+    .undo-button { margin-top: 10px; }
+    .assistant-panel { margin-top: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); }
+    .assistant-panel h3 { margin: 0 0 10px; font-size: 15px; }
+    .assistant-history { min-height: 48px; max-height: 250px; overflow-y: auto; margin-bottom: 12px; }
+    .assistant-message { margin: 0 0 8px; padding: 8px 10px; border-radius: 8px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+    .assistant-message.user { background: var(--chat-bg); }
+    .assistant-shortcuts, .assistant-compose { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .assistant-shortcuts .workbench-button { flex: 1 1 auto; }
+    .assistant-all-platforms { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; cursor: pointer; }
+    .assistant-compose input { flex: 1 1 190px; min-width: 0; }
+    .assistant-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; white-space: pre-line; }
+    .assistant-status.is-error { color: var(--over-limit); }
     .editor-footnote { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
     .writing-note { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 18px; }
     .writing-note strong { display: block; font-size: 12px; font-weight: 600; color: var(--brand-leaf); }
@@ -182,7 +207,7 @@
           <p class="panel-description">所有欄位皆可留白，挑選這次想分享的內容。</p>
         </div>
         <form class="material-fields" id="material-form" aria-label="素材卡表單"></form>
-        <div class="material-actions"><button class="workbench-button" id="build-prompt" type="button">🧩 組好指令</button><button class="workbench-button" id="save-article" type="button">💾 存檔</button><p class="save-status" id="save-status" role="status"></p></div>
+        <div class="material-actions"><button class="workbench-button" id="build-prompt" type="button">🧩 組好指令</button><button class="workbench-button" id="paste-reply" type="button">📥 貼回</button><button class="workbench-button" id="write-with-ai" type="button">✨ 讓 AI 寫</button><p class="save-status" id="ai-status" role="status" aria-live="polite"></p><button class="workbench-button" id="save-article" type="button">💾 存檔</button><p class="save-status" id="save-status" role="status"></p></div>
       </section>
       <section class="panel" aria-labelledby="editor-title">
         <div class="panel-heading">
@@ -196,6 +221,22 @@
           <label class="editor-label" for="post-content">貼文內容</label>
           <textarea id="post-content" class="post-content" placeholder="在這裡寫下你的貼文內容……"></textarea>
           <p class="post-count" id="post-count" role="status" aria-live="polite"></p>
+          <button class="workbench-button review-action" id="review-posts" type="button">🔍 檢查官</button>
+          <p class="review-status" id="review-status" role="status" aria-live="polite"></p>
+          <button class="workbench-button undo-button" id="undo-ai" type="button" disabled>↩ 復原上一版</button>
+          <section class="assistant-panel" aria-labelledby="assistant-title">
+            <h3 id="assistant-title">💬 AI 小幫手</h3>
+            <div class="assistant-history" id="assistant-history" role="log" aria-live="polite"></div>
+            <div class="assistant-shortcuts" id="assistant-shortcuts">
+              <button class="workbench-button" type="button">短一點</button><button class="workbench-button" type="button">換開頭</button><button class="workbench-button" type="button">少一點 emoji</button><button class="workbench-button" type="button">更像範例</button>
+            </div>
+            <label class="assistant-all-platforms"><input id="assistant-all-platforms" type="checkbox">三個平台一起改</label>
+            <form class="assistant-compose" id="assistant-form">
+              <input class="dialog-input" id="assistant-input" aria-label="告訴 AI 小幫手要怎麼改" placeholder="告訴小幫手要怎麼改" required>
+              <button class="workbench-button" id="assistant-send" type="submit">送出</button>
+            </form>
+            <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
+          </section>
           <p class="editor-footnote">各平台草稿會自動暫存在這個瀏覽器；手機預覽會跟著編輯更新。</p>
           <aside class="writing-note" aria-label="品牌寫作提醒">
             <strong>寫給旅人的一點留白</strong>
@@ -224,6 +265,28 @@
       <div class="dialog-head"><h2 id="settings-title">設定</h2><button class="dialog-close" type="button" data-close="settings-dialog" aria-label="關閉設定">×</button></div>
       <label class="dialog-field" for="brand-specification">品牌規格</label>
       <textarea class="dialog-textarea" id="brand-specification" placeholder="在這裡貼上品牌規格全文"></textarea>
+      <fieldset class="ai-settings-group"><legend>第一組 OpenRouter</legend>
+        <label class="dialog-field" for="ai-api-key">OpenRouter 金鑰</label>
+        <input class="dialog-input" id="ai-api-key" type="password" autocomplete="off" placeholder="貼上 OpenRouter API 金鑰">
+        <label class="dialog-field" for="openrouter-model">模型</label>
+        <select class="dialog-input" id="openrouter-model">
+          <optgroup label="DeepSeek"><option value="deepseek/deepseek-v4.1-flash">deepseek/deepseek-v4.1-flash</option><option value="deepseek/deepseek-v4-pro">deepseek/deepseek-v4-pro</option><option value="deepseek/deepseek-v3.2">deepseek/deepseek-v3.2</option></optgroup>
+          <optgroup label="Kimi"><option value="moonshotai/kimi-k2.6">moonshotai/kimi-k2.6</option><option value="moonshotai/kimi-k2.5">moonshotai/kimi-k2.5</option><option value="moonshotai/kimi-k3">moonshotai/kimi-k3</option></optgroup>
+          <optgroup label="MiniMax"><option value="minimax/minimax-m3">minimax/minimax-m3</option><option value="minimax/minimax-m2.7">minimax/minimax-m2.7</option><option value="minimax/minimax-m2.5">minimax/minimax-m2.5</option></optgroup>
+        </select>
+        <label class="dialog-field" for="custom-model">或自己打模型名稱</label>
+        <input class="dialog-input" id="custom-model" type="text" autocomplete="off" placeholder="有填就使用這個模型">
+        <label class="dialog-field" for="reasoning-effort">思考</label>
+        <select class="dialog-input" id="reasoning-effort"><option value="low">少想一點 low</option><option value="medium">多想一點 medium</option><option value="high">想很久 high</option></select>
+      </fieldset>
+      <fieldset class="ai-settings-group"><legend>第二組 Gemini</legend>
+        <label class="dialog-field" for="gemini-api-key">Gemini 金鑰</label>
+        <input class="dialog-input" id="gemini-api-key" type="password" autocomplete="off" placeholder="貼上 Gemini API 金鑰">
+        <label class="dialog-field" for="gemini-model">Gemini 模型</label>
+        <select class="dialog-input" id="gemini-model"><option value="gemini-3.8-flash">gemini-3.8-flash</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option></select>
+      </fieldset>
+      <label class="dialog-field" for="ai-provider-mode">先用哪一組</label>
+      <select class="dialog-input" id="ai-provider-mode"><option value="fallback">先用 OpenRouter 失敗了自動換 Gemini</option><option value="gemini">只用 Gemini</option><option value="openrouter">只用 OpenRouter</option></select>
       <label class="dialog-field" for="review-checklist">檢查清單</label>
       <textarea class="dialog-textarea" id="review-checklist" placeholder="在這裡貼上檢查清單全文"></textarea>
       <div class="dialog-actions"><button class="workbench-button" id="save-settings" type="button">儲存</button><p class="dialog-status" id="settings-status" role="status"></p></div>
@@ -236,6 +299,13 @@
       <p class="dialog-status" id="copy-status" role="status"></p>
     </div>
   </dialog>
+  <dialog class="workbench-dialog" id="paste-dialog" aria-labelledby="paste-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="paste-title">貼回 AI 文字</h2><button class="dialog-close" type="button" data-close="paste-dialog" aria-label="關閉貼回">×</button></div>
+      <textarea class="dialog-textarea prompt-textarea" id="paste-content" placeholder="貼上含【FB】【IG】【LINE】標題的回覆"></textarea>
+      <div class="dialog-actions"><button class="workbench-button" id="apply-paste" type="button">貼回各平台</button><p class="dialog-status" id="paste-status" role="status"></p></div>
+    </div>
+  </dialog>
   <dialog class="workbench-dialog" id="saved-dialog" aria-labelledby="saved-title">
     <div class="dialog-inner">
       <div class="dialog-head"><h2 id="saved-title">我的貼文</h2><button class="dialog-close" type="button" data-close="saved-dialog" aria-label="關閉我的貼文">×</button></div>
@@ -243,8 +313,16 @@
       <p class="dialog-status" id="saved-status" role="status"></p>
     </div>
   </dialog>
+  <dialog class="workbench-dialog" id="review-dialog" aria-labelledby="review-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="review-title">🔍 檢查官報告</h2><button class="dialog-close" type="button" data-close="review-dialog" aria-label="關閉檢查官報告">×</button></div>
+      <div class="review-report" id="review-report"></div>
+      <p class="dialog-status" id="review-usage"></p>
+    </div>
+  </dialog>
   <script>
     // ── 可自行修改的設定：品牌、平台、素材卡欄位 ──
+    const AI_MODEL = "deepseek/deepseek-v4.1-flash";
     const BRAND = {
       name: "松風",
       footerName: "松風民宿",
@@ -384,7 +462,7 @@
     });
     const optionHelp = document.createElement("p");
     optionHelp.className = "option-help";
-    optionHelp.textContent = "勾選後會把裝飾加入中間貼文，再顯示在手機預覽。素材卡內容不會直接進入預覽。中英文採中文在上、英文在下；需使用支援內建翻譯的電腦版 Chrome，首次使用會下載語言模型。";
+    optionHelp.textContent = "勾選後會把裝飾加入中間貼文，再顯示在手機預覽。素材卡內容不會直接進入預覽。中英文採繁體中文全文在上、簡短英文補充在下；需使用支援內建翻譯的電腦版 Chrome，首次使用會下載語言模型。";
     const optionStatus = document.createElement("p");
     optionStatus.className = "option-status";
     optionStatus.setAttribute("role", "status");
@@ -541,6 +619,12 @@
       renderPost(base, cachedEnglish);
       optionStatus.textContent = base ? "已更新貼文內容。" : "請先在中間貼文內容輸入文字，再勾選內文選項。";
       if (!optionInputs.bilingual.checked || !base || cachedEnglish) return;
+      const chineseLead = base.split(/[。！？!?；;，,\n]/, 1)[0].trim();
+      if ([...chineseLead].length > 40) {
+        optionInputs.bilingual.checked = false;
+        optionStatus.textContent = "中文開頭超過 40 字，無法產生簡短英文補充。請先把第一句縮短，再勾選「中英文」。";
+        return;
+      }
       if (!("Translator" in globalThis)) {
         optionInputs.bilingual.checked = false;
         optionStatus.textContent = "此瀏覽器不支援自動翻譯。請使用支援內建翻譯的電腦版 Chrome 開啟此檔案後再試；中文與其他選項已保留。";
@@ -562,12 +646,17 @@
         const translator = await translatorPromise;
         if (request !== revision) return;
         optionStatus.textContent = "正在翻譯，中文原文會保留……";
-        const english = (await translator.translate(base)).trim();
+        const english = (await translator.translate(chineseLead)).trim();
         if (request !== revision || !optionInputs.bilingual.checked) return;
-        if (!english || english === base) throw new Error("未取得有效譯文");
+        if (!english || english === chineseLead || /\p{Script=Han}/u.test(english)) throw new Error("未取得有效英文補充");
+        if ([...english].length >= [...base].length) {
+          optionInputs.bilingual.checked = false;
+          optionStatus.textContent = "英文補充長度已達中文全文，為維持繁體中文為主，這次沒有加入英文。";
+          return;
+        }
         translationCache = { source: base, result: english };
         renderPost(base, english);
-        optionStatus.textContent = "已加入英文翻譯：中文在上、英文在下。自動譯文請於發布前確認語意。";
+        optionStatus.textContent = "已加入簡短英文補充：繁體中文全文在上、英文在下。自動譯文請於發布前確認語意。";
       } catch (error) {
         if (request !== revision) return;
         translatorPromise = null;
@@ -616,12 +705,17 @@
     renderPreview();
 
     const SETTINGS_KEY = "songfeng-social-workbench-settings-v1";
-    let settings = { brandSpecification: "", reviewChecklist: "" };
+    let settings = { brandSpecification: "", reviewChecklist: "", aiApiKey: "", openrouterModel: AI_MODEL,
+      customModel: "", reasoningEffort: "low", geminiApiKey: "", geminiModel: "gemini-3.8-flash", aiProviderMode: "fallback" };
     try {
       const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
       if (saved && typeof saved === "object") {
         if (typeof saved.brandSpecification === "string") settings.brandSpecification = saved.brandSpecification;
         if (typeof saved.reviewChecklist === "string") settings.reviewChecklist = saved.reviewChecklist;
+        if (typeof saved.aiApiKey === "string") settings.aiApiKey = saved.aiApiKey;
+        for (const key of ["openrouterModel", "customModel", "reasoningEffort", "geminiApiKey", "geminiModel", "aiProviderMode"]) {
+          if (typeof saved[key] === "string") settings[key] = saved[key];
+        }
       }
     } catch (error) {
       // 設定仍可在目前頁面編輯；儲存時會顯示瀏覽器的限制。
@@ -631,6 +725,13 @@
     const promptDialog = document.getElementById("prompt-dialog");
     document.getElementById("open-settings").addEventListener("click", () => {
       document.getElementById("brand-specification").value = settings.brandSpecification;
+      document.getElementById("ai-api-key").value = settings.aiApiKey;
+      document.getElementById("openrouter-model").value = settings.openrouterModel;
+      document.getElementById("custom-model").value = settings.customModel;
+      document.getElementById("reasoning-effort").value = settings.reasoningEffort;
+      document.getElementById("gemini-api-key").value = settings.geminiApiKey;
+      document.getElementById("gemini-model").value = settings.geminiModel;
+      document.getElementById("ai-provider-mode").value = settings.aiProviderMode;
       document.getElementById("review-checklist").value = settings.reviewChecklist;
       document.getElementById("settings-status").textContent = "";
       settingsDialog.showModal();
@@ -638,7 +739,14 @@
     document.getElementById("save-settings").addEventListener("click", () => {
       const next = {
         brandSpecification: document.getElementById("brand-specification").value,
-        reviewChecklist: document.getElementById("review-checklist").value
+        reviewChecklist: document.getElementById("review-checklist").value,
+        aiApiKey: document.getElementById("ai-api-key").value.trim(),
+        openrouterModel: document.getElementById("openrouter-model").value,
+        customModel: document.getElementById("custom-model").value.trim(),
+        reasoningEffort: document.getElementById("reasoning-effort").value,
+        geminiApiKey: document.getElementById("gemini-api-key").value.trim(),
+        geminiModel: document.getElementById("gemini-model").value,
+        aiProviderMode: document.getElementById("ai-provider-mode").value
       };
       try {
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
@@ -677,8 +785,8 @@
       const parts = [
         "（這段只要回覆文字，不要建立或修改任何檔案。）",
         `你是【${BRAND.name}】的小編。請照品牌規格，用素材卡的內容，寫【${platforms.join("、")}】的貼文，每個平台一篇。`,
-        "規則：\n- 素材卡上沒有的事不要寫。\n- 只能在某個平台說的，只寫在那個平台。\n- 凡貼文提到日期，都要核對並標出正確星期幾；沒寫年份的月日，一律以台灣當下的西元年份計算。\n- 先不要講的內容，每一篇都不能寫，也不能換句話說、放進標籤或列在回覆裡。\n- 還不確定的不要寫，寫完列出來問我。",
-        `回覆格式：\n${platforms.map(platform => `【${platform}】`).join("\n")}`,
+        "規則：\n- FB、IG、LINE 每篇都必須以台灣繁體中文為主，英文只能作簡短補充；嚴禁任何簡體字及大陸用語（例如：視頻→影片、質量→品質、優化→改善、信息→訊息、網絡→網路、用戶→客人或使用者）。不得寫全英文貼文或讓英文篇幅超過中文。\n- 素材卡上沒有的事不要寫。\n- 只能在某個平台說的，只寫在那個平台。\n- 凡貼文提到日期，都要核對並標出正確星期幾；沒寫年份的月日，一律以台灣當下的西元年份計算。\n- 先不要講的內容，每一篇都不能寫，也不能換句話說、放進標籤或列在回覆裡。\n- 還不確定的不要寫，寫完列出來問我。",
+        `回覆格式：\n${platforms.map(platform => `【${platform}】`).join("\n")}\n【要問我的】`,
         `品牌規格：\n${settings.brandSpecification || "（尚未填寫）"}`,
         `素材卡：\n${material}`
       ];
@@ -709,10 +817,272 @@
       }
     });
 
+    function replySectionsByPlatform(reply) {
+      const sections = {};
+      const heading = /^\s*【(FB|IG|LINE|要問我的)】\s*$/gm;
+      const matches = [...reply.matchAll(heading)];
+      matches.forEach((match, index) => {
+        const end = matches[index + 1]?.index ?? reply.length;
+        sections[match[1]] = reply.slice(match.index + match[0].length, end).trim();
+      });
+      return sections;
+    }
+
+    function placeReplyByPlatform(reply, rememberPrevious = false) {
+      const sections = replySectionsByPlatform(reply);
+      const updates = PLATFORMS.filter(platform => sections[platform.label]);
+      if (!updates.length) throw new Error("找不到【FB】【IG】或【LINE】標題與內容，請檢查回覆格式。");
+      const payload = captureArticle();
+      if (rememberPrevious) payload.previousVersion = structuredClone(payload.drafts);
+      updates.forEach(platform => {
+        payload.drafts[platform.id] = { text: sections[platform.label], ranges: [], options: {}, status: "" };
+      });
+      restoreArticle(payload, currentSavedId);
+      saveWorkingDraft();
+      return sections["要問我的"] || "已放入對應的平台分頁。";
+    }
+
+    const pasteDialog = document.getElementById("paste-dialog");
+    document.getElementById("paste-reply").addEventListener("click", () => {
+      document.getElementById("paste-status").textContent = "";
+      pasteDialog.showModal();
+    });
+    document.getElementById("apply-paste").addEventListener("click", () => {
+      try {
+        document.getElementById("ai-status").textContent = placeReplyByPlatform(document.getElementById("paste-content").value);
+        pasteDialog.close();
+      } catch (error) {
+        document.getElementById("paste-status").textContent = error.message;
+      }
+    });
+
+    const aiButton = document.getElementById("write-with-ai");
+    const aiStatus = document.getElementById("ai-status");
+    const AI_USAGE_KEY = "songfeng-social-workbench-ai-usage-v1";
+    const todayInTaiwan = () => new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+    function readAiUsage() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(AI_USAGE_KEY));
+        if (saved?.date === todayInTaiwan()) return saved;
+      } catch (error) { /* 私密瀏覽時仍可寫作。 */ }
+      return { date: todayInTaiwan(), openrouterCount: 0, openrouterCost: 0, openrouterCostMissing: 0, geminiCount: 0 };
+    }
+    function recordAiUsage(provider, cost) {
+      const usage = readAiUsage();
+      if (provider === "OpenRouter") {
+        usage.openrouterCount++;
+        if (Number.isFinite(cost)) usage.openrouterCost += cost;
+        else usage.openrouterCostMissing = (usage.openrouterCostMissing || 0) + 1;
+      } else usage.geminiCount++;
+      try { localStorage.setItem(AI_USAGE_KEY, JSON.stringify(usage)); } catch (error) { /* 本次結果仍可使用。 */ }
+      return usage;
+    }
+    function aiErrorReason(provider, status, message) {
+      if (status === "timeout") return "等太久（超過 60 秒）";
+      if (status === "network") return "連不到（檢查網路）";
+      if (status === "missing") return "還沒填金鑰";
+      if (provider === "OpenRouter") {
+        return { 401: "金鑰不對", 402: "全班的額度用完了", 404: "模型名稱打錯了", 429: "太多人同時在用" }[status]
+          || (status ? `服務暫時出錯（${status}）` : message || "沒有回傳可用文字");
+      }
+      return (status === 400 && /api[ _-]?key/i.test(message) ? "金鑰不對" : null)
+        || { 403: "沒有權限", 404: "模型名稱不對，或免費版不能用", 429: "免費額度用完了" }[status]
+        || (status === 400 ? "請求格式不被接受（400）" : status ? `服務暫時出錯（${status}）` : message || "沒有回傳可用文字");
+    }
+    async function requestAi(provider, messages) {
+      const gemini = provider === "Gemini";
+      const key = gemini ? settings.geminiApiKey : settings.aiApiKey;
+      if (!key) throw new Error(aiErrorReason(provider, "missing", ""));
+      const body = {
+        model: gemini ? settings.geminiModel : (settings.customModel || settings.openrouterModel),
+        messages: typeof messages === "string" ? [{ role: "user", content: messages }] : messages
+      };
+      if (!gemini) {
+        body.max_tokens = 4000;
+        body.reasoning = { effort: settings.reasoningEffort, exclude: true };
+        body.usage = { include: true };
+      }
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 60000);
+      try {
+        const response = await fetch(gemini
+          ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+          : "https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify(body), signal: controller.signal
+        });
+        let result;
+        try {
+          result = await response.json();
+        } catch (error) {
+          if (controller.signal.aborted) throw error;
+          if (!response.ok) throw new Error(aiErrorReason(provider, response.status, ""));
+          throw new Error("服務回傳的資料無法讀取");
+        }
+        const payload = gemini && Array.isArray(result) ? result[0] : result;
+        if (!response.ok) {
+          const detail = payload?.error?.message || payload?.message || "";
+          throw new Error(aiErrorReason(provider, response.status, String(detail)));
+        }
+        const choice = payload?.choices?.[0];
+        const reply = typeof choice?.message?.content === "string"
+          ? choice.message.content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim() : "";
+        if (!reply) throw new Error(choice?.finish_reason === "length"
+          ? "想太久，字數用完了（⚙ 設定把思考調成少想一點）" : "沒有回傳可用文字");
+        return { provider, reply, truncated: choice?.finish_reason === "length", usage: payload?.usage || {} };
+      } catch (error) {
+        if (error?.name === "AbortError") throw new Error(aiErrorReason(provider, "timeout", ""));
+        if (error instanceof TypeError) throw new Error(aiErrorReason(provider, "network", ""));
+        throw error;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    // 所有 ✨ 功能共用這個入口，依設定決定先問哪一組與是否切換備胎。
+    async function askAi(messages) {
+      const mode = settings.aiProviderMode;
+      const providers = mode === "gemini" ? ["Gemini"] : mode === "openrouter"
+        ? ["OpenRouter"] : ["OpenRouter", "Gemini"];
+      if (!settings.aiApiKey && !settings.geminiApiKey) throw new Error("還沒填金鑰。按 ⚙ 設定。");
+      const errors = [];
+      for (const provider of providers) {
+        if (provider === "Gemini" && mode === "fallback" && !settings.geminiApiKey) break;
+        try {
+          const result = await requestAi(provider, messages);
+          return { ...result, warning: errors.length ? `⚠️ ${errors[0]}。這次改用 Gemini。` : "" };
+        } catch (error) {
+          errors.push(`${provider}：${error.message}`);
+        }
+      }
+      const noBackup = providers[0] === "OpenRouter" && !settings.geminiApiKey;
+      throw new Error(`${errors.join("\n")}${noBackup ? "\n沒有備胎。" : ""}`);
+    }
+    function aiUsageLine(result) {
+      const tokenCount = Number(result.usage.total_tokens);
+      const cost = Number(result.usage.cost);
+      const knownCost = result.usage.cost != null && Number.isFinite(cost);
+      const usage = recordAiUsage(result.provider, knownCost ? cost : NaN);
+      const tokens = Number.isFinite(tokenCount) && result.usage.total_tokens != null ? tokenCount : "未知";
+      const amount = knownCost ? `$${cost.toFixed(6)}` : "費用未提供";
+      const dailyCost = usage.openrouterCostMissing ? `$${usage.openrouterCost.toFixed(6)}（部分費用未提供）` : `$${usage.openrouterCost.toFixed(6)}`;
+      return `這次用 ${result.provider}：${tokens} tokens 約 ${amount}｜今天 OpenRouter ${usage.openrouterCount} 次 ${dailyCost}、Gemini ${usage.geminiCount} 次`;
+    }
+    aiButton.addEventListener("click", async () => {
+      if (aiButton.disabled) return;
+      aiButton.disabled = true;
+      aiButton.textContent = "✨ AI 寫作中…";
+      aiStatus.classList.remove("is-error");
+      aiStatus.textContent = "";
+      try {
+        const result = await askAi(assemblePrompt());
+        const lines = [];
+        if (result.warning) {
+          lines.push(result.warning);
+          aiStatus.classList.add("is-error");
+        }
+        lines.push(aiUsageLine(result));
+        if (result.truncated) lines.push("回覆可能被切掉了。");
+        try {
+          lines.push(placeReplyByPlatform(result.reply, true));
+        } catch (error) {
+          document.getElementById("paste-content").value = result.reply;
+          lines.push(`找不到【平台】標題，以下是 AI 原文。可用 📥 貼回 手動分：\n${result.reply}`);
+          aiStatus.classList.add("is-error");
+        }
+        aiStatus.textContent = lines.join("\n");
+      } catch (error) {
+        aiStatus.classList.add("is-error");
+        aiStatus.textContent = error.message;
+      } finally {
+        aiButton.disabled = false;
+        aiButton.textContent = "✨ 讓 AI 寫";
+      }
+    });
+
+    const reviewButton = document.getElementById("review-posts");
+    const reviewStatus = document.getElementById("review-status");
+    const reviewDialog = document.getElementById("review-dialog");
+    const DEFAULT_REVIEW_CHECKLIST = [
+      "1. 日期價格對不對",
+      "2. 有沒有多加的事",
+      "3. 只能在某平台講的有沒有跑掉",
+      "4. 先不要講的有沒有出現",
+      "5. 有沒有不能用的字",
+      "6. 有沒有簡體字或大陸用語"
+    ].join("\n");
+    reviewButton.addEventListener("click", async () => {
+      if (reviewButton.disabled) return;
+      const article = captureArticle();
+      const posts = PLATFORMS.map(platform => ({
+        label: platform.label,
+        text: article.drafts[platform.id].text.trim()
+      }));
+      reviewStatus.classList.remove("is-error");
+      if (!posts.some(post => post.text)) {
+        reviewStatus.textContent = "還沒有貼文可以檢查";
+        return;
+      }
+      const system = `你是【${BRAND.name}】的審核官，專門挑毛病，不負責誇獎。把每一篇貼文照檢查清單一條一條對。✅ 符合；❌ 不符合（寫出哪一句有問題、該怎麼改）；⚠️ 要靠人判斷的，先給意見。回覆格式：【平台名稱】換行，然後每條一行「編號 符號 一句話」，最後【總結】列出要人工確認的事。不管清單有沒有寫，都另外檢查有沒有簡體字或大陸用語，以及是否以台灣繁體中文為主、英文僅作簡短補充；全英文或英文篇幅超過中文應標為 ❌。報告也用台灣繁體中文寫，嚴禁簡體字。`;
+      const material = MATERIAL_FIELDS.map(field =>
+        `${field.label}：${document.getElementById(field.id).value || "（未填）"}`
+      ).join("\n\n");
+      const user = [
+        `品牌規格全文：\n${settings.brandSpecification || "（尚未填寫）"}`,
+        `素材卡全文：\n${material}`,
+        `檢查清單：\n${settings.reviewChecklist.trim() || DEFAULT_REVIEW_CHECKLIST}`,
+        posts.map(post => `【${post.label}】\n${post.text || "（沒有貼文，無須檢查）"}`).join("\n\n")
+      ].join("\n\n");
+      reviewButton.disabled = true;
+      reviewButton.textContent = "🔍 檢查中…";
+      reviewStatus.textContent = "正在檢查貼文…";
+      try {
+        // 每次只送這組 system/user，不帶寫作或小幫手的對話紀錄。
+        const result = await askAi([{ role: "system", content: system }, { role: "user", content: user }]);
+        const report = document.getElementById("review-report");
+        report.replaceChildren();
+        result.reply.split(/\r?\n/).forEach(line => {
+          const row = previewElement("p", "review-line", line || "\u00a0");
+          if (line.includes("❌")) row.classList.add("is-fail");
+          else if (line.includes("⚠️") || line.includes("⚠")) row.classList.add("is-warning");
+          report.append(row);
+        });
+        document.getElementById("review-usage").textContent = [
+          result.warning, aiUsageLine(result), result.truncated ? "回覆可能被切掉了。" : ""
+        ].filter(Boolean).join("\n");
+        reviewStatus.textContent = "";
+        reviewDialog.showModal();
+      } catch (error) {
+        reviewStatus.classList.add("is-error");
+        reviewStatus.textContent = error.message;
+      } finally {
+        reviewButton.disabled = false;
+        reviewButton.textContent = "🔍 檢查官";
+      }
+    });
+
     const ARTICLES_KEY = "songfeng-social-workbench-articles-v1";
     const WORKING_KEY = "songfeng-social-workbench-working-v1";
     let savedPosts = [];
     let currentSavedId = null;
+    let assistantHistory = [];
+    let previousVersion = null;
+    let articleRevision = 0;
+    const assistantHistoryBox = document.getElementById("assistant-history");
+    const assistantStatus = document.getElementById("assistant-status");
+    const assistantInput = document.getElementById("assistant-input");
+    const assistantSend = document.getElementById("assistant-send");
+    const undoAiButton = document.getElementById("undo-ai");
+    function renderAssistantHistory() {
+      assistantHistoryBox.replaceChildren();
+      assistantHistory.forEach(message => {
+        const label = message.role === "user" ? "我說：" : "小幫手：";
+        assistantHistoryBox.append(previewElement("p", `assistant-message ${message.role}`, `${label}${message.display || message.content}`));
+      });
+      undoAiButton.disabled = !previousVersion;
+    }
     try {
       const stored = JSON.parse(localStorage.getItem(ARTICLES_KEY));
       if (Array.isArray(stored)) {
@@ -738,7 +1108,9 @@
           options: { ...drafts[platform.id].options },
           status: drafts[platform.id].status
         }])),
-        activePlatformId
+        activePlatformId,
+        assistantHistory: assistantHistory.map(message => ({ ...message })),
+        previousVersion: previousVersion ? structuredClone(previousVersion) : null
       };
     }
 
@@ -756,7 +1128,16 @@
 
     function restoreArticle(payload, savedId = null) {
       ++revision; // 避免舊文章尚未完成的翻譯寫入新文章。
+      ++articleRevision;
+      assistantStatus.textContent = "";
+      assistantStatus.classList.remove("is-error");
       currentSavedId = savedId;
+      assistantHistory = Array.isArray(payload?.assistantHistory) ? payload.assistantHistory.filter(message =>
+        (message?.role === "user" || message?.role === "assistant") && typeof message.content === "string"
+      ).map(message => ({ role: message.role, content: message.content,
+        display: typeof message.display === "string" ? message.display : "" })) : [];
+      previousVersion = payload?.previousVersion && typeof payload.previousVersion === "object"
+        ? structuredClone(payload.previousVersion) : null;
       MATERIAL_FIELDS.forEach(field => {
         document.getElementById(field.id).value = typeof payload?.fields?.[field.id] === "string"
           ? payload.fields[field.id] : "";
@@ -789,7 +1170,92 @@
         button.tabIndex = selected ? 0 : -1;
       });
       renderPreview();
+      renderAssistantHistory();
     }
+
+    undoAiButton.addEventListener("click", () => {
+      if (!previousVersion) return;
+      const payload = captureArticle();
+      payload.drafts = structuredClone(previousVersion);
+      payload.previousVersion = structuredClone(captureArticle().drafts);
+      restoreArticle(payload, currentSavedId);
+      saveWorkingDraft();
+    });
+
+    function assistantMessages(platform, instruction, post, allPlatforms = false) {
+      const material = MATERIAL_FIELDS.map(field =>
+        `${field.label}：${document.getElementById(field.id).value || "（未填）"}`
+      ).join("\n\n");
+      const system = `你是【${BRAND.name}】的小編助理。使用者會叫你修改${allPlatforms ? "【FB】【IG】【LINE】三篇貼文" : `一篇【${platform.label}】貼文`}。只改使用者要求的地方，其他保持原樣；不能加素材卡上沒有的事實；遵守品牌規格；整篇必須以台灣繁體中文和台灣用語為主，英文只能作簡短補充，不得全英文或讓英文篇幅超過中文。嚴禁簡體字及大陸用語（例如：視頻→影片、質量→品質、優化→改善、信息→訊息、網絡→網路、用戶→客人或使用者）。${allPlatforms ? "依序以【FB】【IG】【LINE】各占一行作為標題，分開回覆改好後的三篇完整貼文，不要解釋。" : "只回覆改好以後的整篇貼文，不要解釋、不要加標題。"}\n\n品牌規格全文：\n${settings.brandSpecification || "（尚未填寫）"}\n\n素材卡全文：\n${material}`;
+      const user = allPlatforms
+        ? `目前的三篇貼文：\n${PLATFORMS.map(item => `【${item.label}】\n${post[item.id]}`).join("\n\n")}\n\n請三篇都這樣改：${instruction}`
+        : `目前的【${platform.label}】貼文：${post}。請這樣改：${instruction}`;
+      return { messages: [{ role: "system", content: system },
+        ...assistantHistory.slice(-8).map(({ role, content }) => ({ role, content })),
+        { role: "user", content: user }], user };
+    }
+
+    document.getElementById("assistant-shortcuts").addEventListener("click", event => {
+      if (event.target.tagName !== "BUTTON") return;
+      assistantInput.value = event.target.textContent;
+      document.getElementById("assistant-form").requestSubmit();
+    });
+    document.getElementById("assistant-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const instruction = assistantInput.value.trim();
+      if (!instruction || assistantSend.disabled) return;
+      const platform = PLATFORMS.find(item => item.id === activePlatformId);
+      const allPlatforms = document.getElementById("assistant-all-platforms").checked;
+      const startingDrafts = captureArticle().drafts;
+      const post = allPlatforms ? Object.fromEntries(PLATFORMS.map(item => [item.id, startingDrafts[item.id].text])) : postEditor.value;
+      assistantStatus.classList.remove("is-error");
+      if (allPlatforms ? PLATFORMS.some(item => !post[item.id].trim()) : !post.trim()) {
+        assistantStatus.textContent = allPlatforms ? "先讓 AI 寫好三個平台的貼文" : "先讓 AI 寫一篇";
+        return;
+      }
+      const startedArticle = articleRevision;
+      const { messages, user } = assistantMessages(platform, instruction, post, allPlatforms);
+      assistantSend.disabled = true;
+      assistantSend.textContent = "修改中…";
+      assistantStatus.textContent = "";
+      try {
+        const result = await askAi(messages);
+        if (startedArticle !== articleRevision) {
+          assistantStatus.textContent = "已切換貼文，這次回覆沒有套用。";
+          return;
+        }
+        const payload = captureArticle();
+        if (allPlatforms ? PLATFORMS.some(item => payload.drafts[item.id].text !== post[item.id]) : payload.drafts[platform.id].text !== post) {
+          assistantStatus.textContent = "貼文已在等待時修改，這次回覆沒有套用。";
+          return;
+        }
+        const sections = allPlatforms ? replySectionsByPlatform(result.reply) : null;
+        if (allPlatforms && PLATFORMS.some(item => !sections[item.label])) {
+          throw new Error(`回覆缺少【FB】【IG】或【LINE】標題與內容，這次沒有套用。AI 原文：\n${result.reply}`);
+        }
+        payload.previousVersion = structuredClone(payload.drafts);
+        if (allPlatforms) {
+          PLATFORMS.forEach(item => {
+            payload.drafts[item.id] = { text: sections[item.label], ranges: [], options: {}, status: "" };
+          });
+        } else {
+          payload.drafts[platform.id] = { text: result.reply, ranges: [], options: {}, status: "" };
+        }
+        payload.assistantHistory = [...assistantHistory,
+          { role: "user", content: user, display: instruction },
+          { role: "assistant", content: result.reply }];
+        restoreArticle(payload, currentSavedId);
+        saveWorkingDraft();
+        assistantInput.value = "";
+        assistantStatus.textContent = [result.warning, aiUsageLine(result), result.truncated ? "回覆可能被切掉了。" : ""].filter(Boolean).join("\n");
+      } catch (error) {
+        assistantStatus.classList.add("is-error");
+        assistantStatus.textContent = error.message;
+      } finally {
+        assistantSend.disabled = false;
+        assistantSend.textContent = "送出";
+      }
+    });
 
     function taiwanDate(date) {
       const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
