@@ -809,13 +809,14 @@
       });
     }
     const imageId = () => globalThis.crypto?.randomUUID?.() || `img-${Date.now()}-${Math.random()}`;
+    const IMG_SRC = new Map();
     async function putImage(url) {
       const id = imageId();
       await imageStore("readwrite", store => store.put(url, id));
       return id;
     }
     async function deleteUnusedImage(id) {
-      if (savedPosts.some(post => post.payload?.images?.includes(id))) return;
+      if (savedPosts.some(post => post.payload?.images?.some(image => (typeof image === "string" ? image : image?.id) === id))) return;
       const url = await imageStore("readonly", store => store.get(id));
       if (savedPosts.some(post => post.payload?.images?.includes(url))) return;
       await imageStore("readwrite", store => store.delete(id));
@@ -2279,6 +2280,45 @@
       document.getElementById("save-status").textContent = "無法讀取已存貼文，請檢查瀏覽器儲存權限。";
     }
 
+    const postsDb = new Promise((resolve, reject) => {
+      const request = indexedDB.open("studio-posts", 1);
+      request.onupgradeneeded = () => request.result.createObjectStore("articles");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    async function postsStore(mode, action) {
+      const db = await postsDb;
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("articles", mode);
+        const request = action(transaction.objectStore("articles"));
+        transaction.oncomplete = () => resolve(request.result);
+        transaction.onerror = () => reject(transaction.error);
+        request.onerror = () => reject(request.error);
+      });
+    }
+    async function persistSavedPosts(posts) {
+      try { await postsStore("readwrite", store => store.put(posts, "all")); }
+      catch (error) {
+        localStorage.setItem(ARTICLES_KEY, JSON.stringify(posts));
+        return;
+      }
+      try { localStorage.setItem(ARTICLES_KEY, JSON.stringify(posts)); }
+      catch (error) {
+        // 手機的 localStorage 額度較小；完整資料已存進 IndexedDB。
+        try { localStorage.removeItem(ARTICLES_KEY); } catch (ignored) {}
+      }
+    }
+    const savedPostsReady = postsStore("readonly", store => store.get("all")).then(stored => {
+      if (!Array.isArray(stored)) return;
+      const merged = new Map(stored.filter(item => item && typeof item.id === "string").map(item => [item.id, item]));
+      savedPosts.forEach(item => {
+        const previous = merged.get(item.id);
+        if (!previous || savedPostOrder(item, previous) < 0) merged.set(item.id, item);
+      });
+      savedPosts = [...merged.values()].sort(savedPostOrder);
+      if (savedDialog.open) renderSavedList(false);
+    }).catch(() => {});
+
     function captureArticle() {
       drafts[activePlatformId] = {
         text: postEditor.value,
@@ -2297,7 +2337,7 @@
           status: drafts[platform.id].status
         }])),
         activePlatformId,
-        images: [...articleImageIds],
+        images: articleImageIds.map(id => ({ id, ...(IMG_SRC.get(id)?.url ? { url: IMG_SRC.get(id).url } : {}) })),
         mainImageIndex,
         pictureOverlay: pictureOverlaySettings(),
         assistantHistory: assistantHistory.map(message => ({ ...message })),
@@ -2345,16 +2385,36 @@
       pictureStatus.classList.remove("is-error");
       const restoringRevision = articleRevision;
       const entries = Array.isArray(payload?.images) ? payload.images.filter(value =>
-        typeof value === "string" && value.length) : [];
+        (typeof value === "string" && value.length) || (value && typeof value.id === "string" && value.id.length)) : [];
       const resolved = await Promise.all(entries.map(async value => {
-        if (/^data:image\//.test(value)) return { id: await putImage(value), url: value, migrated: true };
-        return { id: value, url: await imageStore("readonly", store => store.get(value)), migrated: false };
+        if (typeof value === "string" && /^data:image\//.test(value)) {
+          return { id: await putImage(value), src: value, migrated: true };
+        }
+        const id = typeof value === "string" ? value : value.id;
+        const url = typeof value === "object" && typeof value.url === "string" ? value.url : "";
+        let src = await imageStore("readonly", store => store.get(id));
+        if (typeof src !== "string" && url) {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`圖片下載失敗：${response.status}`);
+            const blob = await response.blob();
+            src = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(reader.error);
+              reader.readAsDataURL(blob);
+            });
+            await imageStore("readwrite", store => store.put(src, id));
+          } catch (error) { src = url; }
+        }
+        return { id, src, url, migrated: false };
       }));
       if (restoringRevision !== articleRevision) return;
-      const found = resolved.filter(item => typeof item.url === "string");
+      const found = resolved.filter(item => typeof item.src === "string");
       articleImageIds = found.map(item => item.id);
-      articleImages = found.map(item => item.url);
-      if (resolved.some(item => item.migrated)) payload.images = [...articleImageIds];
+      articleImages = found.map(item => item.src);
+      found.forEach(item => IMG_SRC.set(item.id, { src: item.src, url: item.url || "" }));
+      if (resolved.some(item => item.migrated)) payload.images = found.map(item => ({ id: item.id, ...(item.url ? { url: item.url } : {}) }));
       mainImageIndex = Number.isInteger(payload?.mainImageIndex) &&
         payload.mainImageIndex >= 0 && payload.mainImageIndex < articleImages.length
         ? payload.mainImageIndex : articleImages.length ? 0 : -1;
@@ -2488,9 +2548,46 @@
 
     function cloudSaveError(error) {
       const message = String(error?.message || error || "");
+      if (/bucket not found/i.test(message)) return "雲端還沒有 images 桶子，到 SQL Editor 貼圖片那段按 Run";
+      if (error?.imageUpload && (error?.code === "42501" || /row-level security/i.test(message))) return "雲端不讓你傳圖，SQL 的圖片權限那段沒跑到";
       if (["42P01", "PGRST205"].includes(error?.code)) return "雲端還沒有 posts 表，到 SQL Editor 貼建表那段按 Run";
       if (error?.code === "42501" || /row-level security/i.test(message)) return "雲端不讓你存，SQL 的權限那段沒跑到";
       return message || "雲端存檔失敗";
+    }
+
+    async function uploadArticleImages(article, userId, onUploaded = () => {}) {
+      let uploaded = 0;
+      for (let index = 0; index < (article.payload?.images?.length || 0); index++) {
+        const image = article.payload.images[index];
+        let id = typeof image === "string" ? image : image?.id;
+        if (!id || (typeof image === "object" && image.url)) continue;
+        const legacySrc = /^data:image\//.test(id) ? id : null;
+        if (legacySrc) id = await putImage(legacySrc);
+        const src = legacySrc || IMG_SRC.get(id)?.src ||
+          (currentSavedId === article.id ? articleImages[articleImageIds.indexOf(id)] : null) ||
+          await imageStore("readonly", store => store.get(id));
+        if (typeof src !== "string" || !src.startsWith("data:image/")) throw new Error(`找不到第 ${index + 1} 張圖的本機檔案`);
+        const blob = await (await fetch(src)).blob();
+        const extension = { jpeg: "jpg", "svg+xml": "svg" }[blob.type.split("/")[1]] || blob.type.split("/")[1] || "jpg";
+        const path = `${userId}/${id}.${extension}`;
+        const { error } = await sb.storage.from("images").upload(path, blob, { upsert: true, contentType: blob.type });
+        if (error) { error.imageUpload = true; throw error; }
+        if (me?.id !== userId) throw new Error("登入帳號已變更");
+        const { data } = sb.storage.from("images").getPublicUrl(path);
+        const url = data.publicUrl;
+        article.payload.images[index] = { id, url };
+        uploaded++;
+        onUploaded();
+        IMG_SRC.set(id, { src, url });
+        const previousSave = typeof article.savedAt === "number" ? article.savedAt : Date.parse(article.savedAt);
+        article.savedAt = Math.max(Date.now(), Number.isFinite(previousSave) ? previousSave + 1 : 0);
+        await persistSavedPosts(savedPosts);
+        if (currentSavedId === article.id) {
+          try { localStorage.setItem(WORKING_KEY, JSON.stringify({ savedId: currentSavedId, payload: captureArticle() })); }
+          catch (error) { /* 圖片 URL 已存進貼文清單；自動暫存滿了也能繼續傳到雲端。 */ }
+        }
+      }
+      return uploaded;
     }
 
     function savedPostOrder(a, b) {
@@ -2509,6 +2606,7 @@
       const status = document.getElementById("saved-status");
       if (!sb || !me) { status.textContent = "先 🔐 登入"; return; }
       if (cloudSyncBusy) { status.textContent = "雲端同步中，請稍等。"; return; }
+      await savedPostsReady;
       cloudSyncBusy = true;
       const userId = me.id;
       const posts = [...savedPosts];
@@ -2517,6 +2615,7 @@
           const article = posts[index];
           status.textContent = `上傳中：第 ${index + 1} 篇／共 ${posts.length} 篇`;
           try {
+            await uploadArticleImages(article, userId);
             const { error } = await sb.from("posts").upsert({
               id: String(article.id), user_id: userId, data: article,
               publish_date: article.publishDate || null, updated_at: new Date().toISOString()
@@ -2539,6 +2638,7 @@
     async function downloadCloudPosts(automatic = false) {
       const status = document.getElementById("saved-status");
       if (!sb || !me) { status.textContent = "先 🔐 登入"; return; }
+      await savedPostsReady;
       if (cloudSyncBusy) {
         if (automatic) setTimeout(() => downloadCloudPosts(true), 100);
         else status.textContent = "雲端同步中，請稍等。";
@@ -2565,7 +2665,7 @@
           else if (savedPostOrder(article, local) < 0) { merged.set(article.id, article); updated++; }
         }
         const next = [...merged.values()].sort(savedPostOrder);
-        localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
+        await persistSavedPosts(next);
         savedPosts = next;
         cloudPostIds = new Set(incoming.map(article => article.id));
         if (savedDialog.open) renderSavedList(false);
@@ -2578,6 +2678,8 @@
     }
 
     async function clearLocalPostsOnSignOut() {
+      await savedPostsReady;
+      await postsStore("readwrite", store => store.delete("all"));
       localStorage.removeItem(ARTICLES_KEY);
       localStorage.removeItem(WORKING_KEY);
       await imageStore("readwrite", store => store.clear());
@@ -2591,6 +2693,7 @@
     }
 
     document.getElementById("save-article").addEventListener("click", async () => {
+      await savedPostsReady;
       const now = new Date();
       const first = document.getElementById(MATERIAL_FIELDS[0].id).value.trim().replace(/\s+/g, " ");
       const name = `${taiwanDate(now)}｜${first || "第一格未填"}`;
@@ -2600,7 +2703,7 @@
       const saveStatus = document.getElementById("save-status");
       saveStatus.classList.remove("is-error");
       try {
-        localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
+        await persistSavedPosts(next);
         pictureStorageFull = false;
         renderPictureUsage();
         savedPosts = next;
@@ -2614,21 +2717,24 @@
         return;
       }
       if (!sb || !me) {
-        saveStatus.textContent = "只存在這台電腦。🔐 登入以後，會同時存到雲端";
+        saveStatus.textContent = "只存在這台電腦（傳了 0 張圖）。🔐 登入以後，會同時存到雲端";
         return;
       }
+      let uploaded = 0;
       try {
+        const userId = me.id;
+        await uploadArticleImages(article, userId, () => uploaded++);
         const { error } = await sb.from("posts").upsert({
-          id: String(article.id), user_id: me.id, data: article,
+          id: String(article.id), user_id: userId, data: article,
           publish_date: article.publishDate || null, updated_at: new Date().toISOString()
         }, { onConflict: "user_id,id" });
         if (error) throw error;
         cloudPostIds.add(article.id);
         if (savedDialog.open) renderSavedList(false);
-        saveStatus.textContent = `☁ 雲端也存了：${article.name}`;
+        saveStatus.textContent = `☁ 雲端也存了：${article.name}（傳了 ${uploaded} 張圖）`;
       } catch (error) {
         saveStatus.classList.add("is-error");
-        saveStatus.textContent = `${cloudSaveError(error)}。這台電腦有存到，不會不見`;
+        saveStatus.textContent = `${cloudSaveError(error)}。這台電腦有存到，不會不見（傳了 ${uploaded} 張圖）`;
       }
     });
 
@@ -2655,7 +2761,7 @@
         open.addEventListener("click", async () => {
           try {
             await restoreArticle(article.payload, article.id);
-            localStorage.setItem(ARTICLES_KEY, JSON.stringify(savedPosts));
+            await persistSavedPosts(savedPosts);
           } catch (error) {
             document.getElementById("saved-status").textContent = "圖片倉庫無法讀取，請檢查瀏覽器儲存權限。";
             return;
@@ -2667,6 +2773,7 @@
         const remove = previewElement("button", "workbench-button", "刪除");
         remove.type = "button";
         remove.addEventListener("click", async () => {
+          await savedPostsReady;
           if (!window.confirm(me ? "雲端的也會一起刪。確定嗎？" : "確定嗎？")) return;
           if (me && sb) {
             const userId = me.id;
@@ -2681,7 +2788,7 @@
           }
           const next = savedPosts.filter(item => item.id !== article.id);
           try {
-            localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
+            await persistSavedPosts(next);
             savedPosts = next;
             cloudPostIds.delete(article.id);
             if (currentSavedId === article.id) {
