@@ -43,10 +43,13 @@
     .material-actions .workbench-button { width: 100%; }
     .material-actions .workbench-button + .workbench-button { margin-top: 8px; }
     .save-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    #save-status.is-error { color: var(--over-limit); }
     #ai-status { white-space: pre-line; overflow-wrap: anywhere; }
     #ai-status.is-error { color: var(--over-limit); }
     #write-with-ai:disabled { opacity: .55; background: var(--line); cursor: not-allowed; }
     .saved-list { max-height: 58dvh; overflow-y: auto; }
+    .saved-cloud-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .saved-item-cloud { margin-left: 8px; color: var(--muted); font-size: 11px; font-weight: 400; white-space: nowrap; }
     .saved-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
     .saved-item-name { min-width: 0; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
     .saved-item-time { color: var(--muted); font-size: 12px; }
@@ -67,6 +70,9 @@
     .prompt-textarea { min-height: 320px; max-height: 58dvh; }
     .dialog-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
     .dialog-status { margin: 0; color: var(--muted); font-size: 12px; }
+    .auth-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    #auth-status { margin-top: 14px; overflow-wrap: anywhere; }
+    #open-auth { max-width: 100%; overflow-wrap: anywhere; }
     .workspace { max-width: 1680px; margin: 0 auto; padding: 28px 32px 40px; }
     .intro { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 22px; }
     .intro p { margin: 0; }
@@ -191,12 +197,36 @@
     .ig-dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: var(--line); cursor: pointer; }
     .ig-dot.is-active { background: var(--brand-primary); }
     .ig-actions { padding: 0 10px 14px; font-size: 21px; letter-spacing: 8px; }
-    .line-screen { min-height: 455px; padding: 22px 10px; background: var(--chat-bg); }
+    .line-screen { min-height: 455px; padding: 22px 10px 0; background: var(--chat-bg); display: flex; flex-direction: column; }
     .line-chat { display: flex; gap: 8px; align-items: flex-start; }
     .line-bubble { flex: 1; padding: 12px; border-radius: 4px 14px 14px 14px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.8; }
     .line-messages { flex: 1; min-width: 0; }
     .line-image-bubble { margin-bottom: 8px; overflow: hidden; border-radius: 4px 14px 14px 14px; background: var(--surface); }
     .line-image-bubble .preview-media { margin: 0; border-radius: 0; }
+    .line-rich-menu { margin-top: auto; background: var(--surface); border-top: 1px solid var(--line); }
+    .line-rich-menu-label { height: 29px; padding: 4px 9px; font-size: 10px; color: var(--muted); }
+    .line-rich-menu img { display: block; width: 100%; height: auto; }
+    .menu-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .menu-controls label { min-width: 0; font-size: 12px; font-weight: 600; }
+    .menu-controls .dialog-input { margin-top: 4px; padding: 9px; font-weight: 400; }
+    .menu-tile-fields { margin-top: 15px; }
+    .menu-tile-fields h3 { margin: 0 0 8px; font-size: 14px; }
+    .menu-tile-row { display: grid; grid-template-columns: 48px 74px minmax(90px, 1fr) minmax(112px, 1fr) minmax(120px, 1.3fr); gap: 7px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .menu-tile-row label { min-width: 0; font-size: 11px; color: var(--muted); }
+    .menu-tile-row .dialog-input { margin-top: 3px; padding: 7px; font-size: 12px; }
+    .menu-tile-code { align-self: center; color: var(--brand-primary); font-size: 13px; font-weight: 700; }
+    .menu-preview-wrap { margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); }
+    .menu-preview-canvas { display: block; width: 100%; height: auto; }
+    .menu-error { margin: 10px 0 0; color: var(--over-limit); font-size: 12px; white-space: pre-line; }
+    .menu-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+    .menu-status { flex: 1 1 100%; margin: 0; color: var(--muted); font-size: 12px; }
+    .menu-dialog { width: min(920px, calc(100% - 24px)); max-height: min(90dvh, 980px); }
+    .menu-dialog .dialog-inner { overflow-y: auto; max-height: min(90dvh, 980px); }
+    @media (max-width: 620px) {
+      .menu-tile-row { grid-template-columns: 34px minmax(0, .65fr) minmax(0, 1fr); gap: 6px; }
+      .menu-tile-row label:nth-of-type(4), .menu-tile-row label:nth-of-type(5) { grid-column: span 1; }
+      .menu-dialog .dialog-inner { padding: 17px; }
+    }
     .threads-post { display: flex; gap: 9px; padding: 18px 8px; }
     .threads-post .preview-post-text { padding: 4px 0 0; }
     @media (min-width: 1101px) {
@@ -229,7 +259,7 @@
 <body>
   <header class="topbar">
     <div class="brand-heading"><span class="brand-mark" aria-hidden="true" data-brand-mark></span><h1 id="page-title"></h1></div>
-    <div class="topbar-actions"><span class="topbar-note">版面預覽</span><button class="workbench-button" id="open-saved" type="button">📁 我的貼文</button><button class="workbench-button" id="new-article" type="button">＋ 新的一篇</button><button class="workbench-button" id="open-settings" type="button">⚙ 設定</button></div>
+    <div class="topbar-actions"><span class="topbar-note">版面預覽</span><button class="workbench-button" id="open-rich-menu" type="button">📋 圖文選單</button><button class="workbench-button" id="open-bot-data" type="button">🤖 LINE 機器人資料</button><button class="workbench-button" id="open-saved" type="button">📁 我的貼文</button><button class="workbench-button" id="new-article" type="button">＋ 新的一篇</button><button class="workbench-button" id="open-settings" type="button">⚙ 設定</button><button class="workbench-button" id="open-auth" type="button">🔐 登入</button></div>
   </header>
   <main class="workspace">
     <div class="intro">
@@ -372,6 +402,7 @@
   <dialog class="workbench-dialog" id="saved-dialog" aria-labelledby="saved-title">
     <div class="dialog-inner">
       <div class="dialog-head"><h2 id="saved-title">我的貼文</h2><button class="dialog-close" type="button" data-close="saved-dialog" aria-label="關閉我的貼文">×</button></div>
+      <div class="saved-cloud-actions"><button class="workbench-button" id="upload-all-posts" type="button">⬆ 全部上傳到雲端</button><button class="workbench-button" id="download-cloud-posts" type="button">⬇ 從雲端拿回來</button></div>
       <div class="saved-list" id="saved-list"></div>
       <p class="dialog-status" id="saved-status" role="status"></p>
     </div>
@@ -383,8 +414,171 @@
       <p class="dialog-status" id="review-usage"></p>
     </div>
   </dialog>
+  <dialog class="workbench-dialog menu-dialog" id="rich-menu-dialog" aria-labelledby="rich-menu-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="rich-menu-title">📋 圖文選單</h2><button class="dialog-close" type="button" data-close="rich-menu-dialog" aria-label="關閉圖文選單">×</button></div>
+      <div class="menu-controls">
+        <label for="rich-menu-layout">版型<select class="dialog-input" id="rich-menu-layout"></select></label>
+        <label for="rich-menu-background">底色<select class="dialog-input" id="rich-menu-background"><option value="brand">品牌主色</option><option value="white">白色</option><option value="image">這篇的主圖加深一點</option></select></label>
+        <label for="rich-menu-bar-label">選單列的字<input class="dialog-input" id="rich-menu-bar-label" maxlength="14" value="選單" placeholder="最多 14 個字"></label>
+      </div>
+      <div class="menu-tile-fields"><h3>每一格設定</h3><div id="rich-menu-tiles"></div></div>
+      <div class="menu-preview-wrap"><canvas id="rich-menu-preview" class="menu-preview-canvas" aria-label="圖文選單即時預覽"></canvas></div>
+      <p id="rich-menu-errors" class="menu-error" role="alert"></p>
+      <div class="menu-actions"><button class="workbench-button" id="download-rich-menu" type="button">⬇ 下載選單圖</button><button class="workbench-button" id="copy-rich-menu" type="button">📋 複製設定表</button><p id="rich-menu-status" class="menu-status" role="status" aria-live="polite"></p></div>
+    </div>
+  </dialog>
+  <dialog class="workbench-dialog" id="bot-data-dialog" aria-labelledby="bot-data-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="bot-data-title">🤖 LINE 機器人品牌資料</h2><button class="dialog-close" type="button" data-close="bot-data-dialog" aria-label="關閉 LINE 機器人資料">×</button></div>
+      <p class="panel-description">使用已存品牌規格、圖文選單文字設定與貼文框內容整理；可在下方補充或修改常見問題。</p>
+      <label class="dialog-field" for="bot-data-faq">客人常問的問題</label>
+      <textarea class="dialog-textarea" id="bot-data-faq" placeholder="每行輸入一題；開啟時會帶入目前貼文框內容"></textarea>
+      <div class="dialog-actions"><button class="workbench-button" id="generate-bot-data" type="button">整理資料</button><p class="dialog-status" id="bot-data-status" role="status" aria-live="polite"></p></div>
+      <label class="dialog-field" for="bot-data-output">整理結果</label>
+      <textarea class="dialog-textarea prompt-textarea" id="bot-data-output" readonly aria-label="LINE 機器人品牌資料整理結果" placeholder="整理結果會顯示在這裡"></textarea>
+      <div class="dialog-actions"><button class="workbench-button" id="copy-bot-data" type="button">📋 複製結果</button><p class="dialog-status" id="bot-data-copy-status" role="status"></p></div>
+    </div>
+  </dialog>
+  <dialog class="workbench-dialog" id="auth-dialog" aria-labelledby="auth-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><h2 id="auth-title">🔐 登入</h2><button class="dialog-close" type="button" data-close="auth-dialog" aria-label="關閉登入視窗">×</button></div>
+      <label class="dialog-field" for="auth-email">Email</label>
+      <input class="dialog-input" id="auth-email" type="email" autocomplete="email" inputmode="email">
+      <label class="dialog-field" for="auth-password">密碼（至少 6 個字）</label>
+      <input class="dialog-input" id="auth-password" type="password" minlength="6" autocomplete="current-password">
+      <div class="auth-actions"><button class="workbench-button" id="auth-sign-in" type="button">登入</button><button class="workbench-button" id="auth-sign-up" type="button">第一次：註冊</button><button class="workbench-button" id="auth-sign-out" type="button">登出</button><button class="workbench-button" type="button" data-close="auth-dialog">關閉</button></div>
+      <p class="dialog-status" id="auth-status" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ── 可自行修改的設定：品牌、平台、素材卡欄位 ──
+    // 這兩個可以公開，守門的是 Supabase 的 RLS；sb_secret_ 開頭的絕對不要貼
+    const SB_URL = 'https://sgzwofvztuoiqneihxgi.supabase.co';
+    const SB_KEY = 'sb_publishable_rHPKIlXVkH5lh8a_U6aEiA_0B5-TF_k';
+    let sb = null;
+    let me = null;
+    let sbIssue = "";
+    if (!SB_URL || !SB_KEY) {
+      sbIssue = "SB_URL 或 SB_KEY 還沒填";
+    } else if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      sbIssue = "Supabase 程式庫載入失敗";
+    } else {
+      try {
+        sb = window.supabase.createClient(SB_URL, SB_KEY);
+      } catch (error) {
+        sbIssue = "Supabase 設定無法使用";
+      }
+    }
+    const authDialog = document.getElementById("auth-dialog");
+    const authStatus = document.getElementById("auth-status");
+    const authButton = document.getElementById("open-auth");
+    const authEmail = document.getElementById("auth-email");
+    const authPassword = document.getElementById("auth-password");
+    const authSignIn = document.getElementById("auth-sign-in");
+    const authSignUp = document.getElementById("auth-sign-up");
+    const authSignOut = document.getElementById("auth-sign-out");
+
+    function renderAuth() {
+      authButton.textContent = me ? `☁ ${me.email}` : "🔐 登入";
+      authSignOut.disabled = !sb || !me;
+      authSignIn.disabled = !sb;
+      authSignUp.disabled = !sb;
+      authStatus.textContent = sbIssue ? `還沒接雲端：${sbIssue}` : me ? `已登入：${me.email}` : "尚未登入";
+    }
+
+    function authErrorText(error) {
+      const message = String(error?.message || error || "");
+      if (/invalid login credentials/i.test(message)) return "Email 或密碼不對";
+      if (/user already registered/i.test(message)) return "這個 Email 註冊過了，直接按「登入」";
+      if (/email not confirmed/i.test(message)) return "到 Supabase 把 Confirm email 關掉";
+      if (/password.*(short|6 character|6 char)|at least 6 characters/i.test(message)) return "至少 6 個字";
+      if (/rate limit|too many requests|too many attempts/i.test(message)) return "試太多次了，等 1 分鐘";
+      return message || "操作失敗，請稍後再試";
+    }
+
+    function authCredentials() {
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if (!email || !authEmail.checkValidity()) {
+        authStatus.textContent = "請輸入有效的 Email";
+        return null;
+      }
+      if (password.length < 6) {
+        authStatus.textContent = "至少 6 個字";
+        return null;
+      }
+      return { email, password };
+    }
+
+    authButton.addEventListener("click", () => authDialog.showModal());
+    authSignIn.addEventListener("click", async () => {
+      if (!sb) return;
+      const credentials = authCredentials();
+      if (!credentials) return;
+      authStatus.textContent = "登入中…";
+      try {
+        const { error } = await sb.auth.signInWithPassword(credentials);
+        if (error) throw error;
+        authPassword.value = "";
+      } catch (error) {
+        authStatus.textContent = authErrorText(error);
+      }
+    });
+    authSignUp.addEventListener("click", async () => {
+      if (!sb) return;
+      const credentials = authCredentials();
+      if (!credentials) return;
+      authStatus.textContent = "註冊中…";
+      try {
+        const { data, error } = await sb.auth.signUp(credentials);
+        if (error) throw error;
+        authPassword.value = "";
+        if (!data?.session) authStatus.textContent = "Supabase 的 Confirm email 還開著，關掉再按登入";
+      } catch (error) {
+        authStatus.textContent = authErrorText(error);
+      }
+    });
+    authSignOut.addEventListener("click", async () => {
+      if (!sb) return;
+      const clearThisComputer = window.confirm("要把這台電腦上的貼文也清掉嗎？借別人的電腦用，請按確定；自己的電腦按取消。");
+      authStatus.textContent = "登出中…";
+      try {
+        const { error } = await sb.auth.signOut();
+        if (error) throw error;
+        authPassword.value = "";
+        if (clearThisComputer) await clearLocalPostsOnSignOut();
+      } catch (error) {
+        authStatus.textContent = authErrorText(error);
+      }
+    });
+    renderAuth();
+    if (sb) {
+      sb.auth.onAuthStateChange((_event, session) => {
+        const previousUserId = me?.id;
+        me = session?.user || null;
+        if (me && me.id !== cloudPostIdsUserId) {
+          cloudPostIds.clear();
+          cloudPostIdsUserId = me.id;
+        }
+        renderAuth();
+        if (savedDialog.open) renderSavedList();
+        if (me && me.id !== previousUserId && !autoDownloadedUsers.has(me.id)) {
+          autoDownloadedUsers.add(me.id);
+          setTimeout(() => downloadCloudPosts(true), 0);
+        }
+      });
+    }
+
+    const MENUS = [
+      { id: "large-6", name: "大型 6 格（上 3 下 3）", w: 2500, h: 1686, cols: 3, rows: 2 },
+      { id: "large-4", name: "大型 4 格（上 2 下 2）", w: 2500, h: 1686, cols: 2, rows: 2 },
+      { id: "large-1", name: "大型 1 格", w: 2500, h: 1686, cols: 1, rows: 1 },
+      { id: "small-3", name: "小型 3 格（左中右）", w: 2500, h: 843, cols: 3, rows: 1 },
+      { id: "small-2", name: "小型 2 格（左右）", w: 2500, h: 843, cols: 2, rows: 1 },
+      { id: "small-1", name: "小型 1 格", w: 2500, h: 843, cols: 1, rows: 1 }
+    ];
     const PIC_SIZE = { fb: [1080, 1080], ig: [1080, 1350], line: [1040, 1040], threads: [1080, 1350] };
     const SIZES = {
       platform: { label: "跟著平台", size: null },
@@ -474,6 +668,21 @@
       container.append(label, input);
       document.getElementById("material-form").append(container);
     });
+    const publishDateField = document.createElement("div");
+    publishDateField.className = "field";
+    const publishDateLabel = document.createElement("label");
+    publishDateLabel.htmlFor = "publish-date";
+    publishDateLabel.textContent = "📅 預計發佈日";
+    const publishDateInput = document.createElement("input");
+    publishDateInput.className = "dialog-input";
+    publishDateInput.id = "publish-date";
+    publishDateInput.type = "date";
+    publishDateInput.addEventListener("input", () => {
+      cur.publishDate = publishDateInput.value;
+      saveWorkingDraft();
+    });
+    publishDateField.append(publishDateLabel, publishDateInput);
+    document.getElementById("material-form").append(publishDateField);
 
     let activePlatformId = PLATFORMS[0].id;
     const platformButtons = {};
@@ -558,6 +767,31 @@
 
     let articleImages = [];
     let articleImageIds = [];
+    const RICH_MENU_DB = "studio-rich-menu";
+    const RICH_MENU_STORE = "menus";
+    const RICH_MENU_KEY = "account-menu";
+    let richMenuSettings = { layout: "large-6", background: "brand", barLabel: "選單", tiles: [] };
+    let richMenuCanvasUrl = "";
+    let richMenuUiReady = false;
+    const richMenuDb = new Promise((resolve, reject) => {
+      const request = indexedDB.open(RICH_MENU_DB, 1);
+      request.onupgradeneeded = () => request.result.createObjectStore(RICH_MENU_STORE);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    function richMenuStore(mode, action) {
+      return richMenuDb.then(db => new Promise((resolve, reject) => {
+        const transaction = db.transaction(RICH_MENU_STORE, mode);
+        const request = action(transaction.objectStore(RICH_MENU_STORE));
+        transaction.oncomplete = () => resolve(request.result);
+        transaction.onerror = () => reject(transaction.error);
+        request.onerror = () => reject(request.error);
+      }));
+    }
+    async function saveRichMenu() {
+      try { await richMenuStore("readwrite", store => store.put(richMenuSettings, RICH_MENU_KEY)); }
+      catch (error) { document.getElementById("rich-menu-status").textContent = "設定無法存入圖文選單資料庫。"; }
+    }
     const imageDb = new Promise((resolve, reject) => {
       const request = indexedDB.open("studio-images", 1);
       request.onupgradeneeded = () => request.result.createObjectStore("imgs");
@@ -808,6 +1042,7 @@
         list.append(item);
       });
       renderPictureUsage();
+      refreshRichMenu(false);
     }
     function compressPicture(file, targetPlatformId = null) {
       return new Promise((resolve, reject) => {
@@ -964,12 +1199,328 @@
         messages.append(bubble);
         row.append(messages);
         screen.append(row);
+        const menu = previewElement("div", "line-rich-menu");
+        menu.append(previewElement("div", "line-rich-menu-label", `${richMenuSettings.barLabel || "選單"}　▾`));
+        if (richMenuCanvasUrl) {
+          const menuImage = document.createElement("img");
+          menuImage.src = richMenuCanvasUrl;
+          menuImage.alt = "LINE 圖文選單預覽";
+          menu.append(menuImage);
+        }
+        screen.append(menu);
       } else if (activePlatformId === "threads") {
         const thread = previewElement("div", "threads-post");
         thread.append(profile(), body);
         screen.append(thread, media());
       }
     }
+
+    const richMenuLayout = document.getElementById("rich-menu-layout");
+    const richMenuBackground = document.getElementById("rich-menu-background");
+    const richMenuBarLabel = document.getElementById("rich-menu-bar-label");
+    const richMenuTiles = document.getElementById("rich-menu-tiles");
+    const richMenuPreview = document.getElementById("rich-menu-preview");
+    const richMenuErrors = document.getElementById("rich-menu-errors");
+    const richMenuStatus = document.getElementById("rich-menu-status");
+    const richMenuDialog = document.getElementById("rich-menu-dialog");
+    MENUS.forEach(menu => richMenuLayout.add(new Option(`${menu.name}｜${menu.w}×${menu.h}`, menu.id)));
+
+    function selectedMenuLayout() { return MENUS.find(menu => menu.id === richMenuSettings.layout) || MENUS[0]; }
+    function richMenuCellNames(layout) {
+      const names = [];
+      const colNames = layout.cols === 2 ? ["左", "右"] : ["左", "中", "右"];
+      for (let row = 0; row < layout.rows; row++) for (let col = 0; col < layout.cols; col++) {
+        if (layout.rows === 1 && layout.cols === 1) names.push("全版");
+        else if (layout.rows === 1 && layout.cols === 3) names.push(["左", "中", "右"][col]);
+        else names.push(`${colNames[col] || `第${col + 1}欄`}${layout.rows === 1 ? "" : row === 0 ? "上" : row === layout.rows - 1 ? "下" : `第${row + 1}列`}`);
+      }
+      return names;
+    }
+    function ensureRichMenuTiles() {
+      const layout = selectedMenuLayout();
+      const count = layout.cols * layout.rows;
+      richMenuSettings.tiles = Array.from({ length: count }, (_, index) => richMenuSettings.tiles[index] ||
+        { icon: "", text: "", action: "text", content: "" });
+      richMenuTiles.replaceChildren();
+      richMenuSettings.tiles.forEach((tile, index) => {
+        const row = document.createElement("div");
+        row.className = "menu-tile-row";
+        const code = document.createElement("strong");
+        code.className = "menu-tile-code";
+        code.textContent = String.fromCharCode(65 + index);
+        row.append(code);
+        const fields = [
+          ["圖示", "icon", "emoji", "", 8], ["格子上的字", "text", "text", "最多 12 字", 12]
+        ];
+        fields.forEach(([labelText, key, type, placeholder, maxLength]) => {
+          const label = document.createElement("label");
+          label.append(document.createTextNode(labelText));
+          const input = document.createElement("input");
+          input.className = "dialog-input";
+          input.type = "text";
+          input.maxLength = maxLength;
+          input.placeholder = placeholder;
+          input.value = tile[key] || "";
+          input.setAttribute("aria-label", `${code.textContent} ${labelText}`);
+          input.addEventListener("input", () => { tile[key] = input.value; refreshRichMenu(); });
+          label.append(input); row.append(label);
+        });
+        const actionLabel = document.createElement("label");
+        actionLabel.append(document.createTextNode("按了做什麼"));
+        const action = document.createElement("select");
+        action.className = "dialog-input";
+        [["text", "送出文字"], ["url", "開網址"], ["none", "不設定"]].forEach(([value, name]) => action.add(new Option(name, value)));
+        action.value = tile.action || "text";
+        action.setAttribute("aria-label", `${code.textContent} 按了做什麼`);
+        action.addEventListener("change", () => { tile.action = action.value; refreshRichMenu(); });
+        actionLabel.append(action); row.append(actionLabel);
+        const contentLabel = document.createElement("label");
+        contentLabel.append(document.createTextNode("內容"));
+        const content = document.createElement("input");
+        content.className = "dialog-input"; content.type = "text"; content.value = tile.content || "";
+        content.placeholder = "留白時使用格子上的字";
+        content.setAttribute("aria-label", `${code.textContent} 內容`);
+        content.addEventListener("input", () => { tile.content = content.value; refreshRichMenu(); });
+        contentLabel.append(content); row.append(contentLabel);
+        richMenuTiles.append(row);
+      });
+    }
+    function wrapRichMenuText(context, value, maxWidth, maxLines) {
+      const chars = [...value];
+      const lines = [];
+      let line = "";
+      for (const char of chars) {
+        const next = line + char;
+        if (line && context.measureText(next).width > maxWidth) { lines.push(line); line = char; }
+        else line = next;
+      }
+      if (line) lines.push(line);
+      if (lines.length > maxLines) {
+        const shortened = lines.slice(0, maxLines);
+        let last = shortened[maxLines - 1];
+        while (last && context.measureText(`${last}…`).width > maxWidth) last = [...last].slice(0, -1).join("");
+        shortened[maxLines - 1] = `${last}…`;
+        return shortened;
+      }
+      return lines;
+    }
+    function drawRichMenu(canvas, includeWarnings = true) {
+      const layout = selectedMenuLayout();
+      canvas.width = layout.w; canvas.height = layout.h;
+      const context = canvas.getContext("2d");
+      const imageBackground = richMenuSettings.background === "image";
+      const hasImage = Boolean(articleImages[mainImageIndex]);
+      let dark = imageBackground || richMenuSettings.background === "brand";
+      const primary = getComputedStyle(document.documentElement).getPropertyValue("--brand-primary").trim() || "#314A35";
+      context.fillStyle = imageBackground && !hasImage ? primary : richMenuSettings.background === "white" ? "#FFFFFF" : primary;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      if (imageBackground && hasImage) {
+        const image = new Image();
+        image.src = articleImages[mainImageIndex];
+        if (image.complete && image.naturalWidth) {
+          const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+          const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+          context.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+          context.fillStyle = "rgba(0,0,0,.58)";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          dark = true;
+        } else {
+          image.onload = () => refreshRichMenu(false);
+        }
+      }
+      const cellWidth = canvas.width / layout.cols, cellHeight = canvas.height / layout.rows;
+      context.strokeStyle = dark ? "rgba(255,255,255,.32)" : `${primary}55`;
+      context.lineWidth = 3;
+      for (let col = 1; col < layout.cols; col++) {
+        context.beginPath(); context.moveTo(col * cellWidth, 0); context.lineTo(col * cellWidth, canvas.height); context.stroke();
+      }
+      for (let row = 1; row < layout.rows; row++) {
+        context.beginPath(); context.moveTo(0, row * cellHeight); context.lineTo(canvas.width, row * cellHeight); context.stroke();
+      }
+      context.textAlign = "center"; context.textBaseline = "middle";
+      context.fillStyle = dark ? "#FFFFFF" : primary;
+      const fontFamily = getComputedStyle(document.body).fontFamily;
+      richMenuSettings.tiles.forEach((tile, index) => {
+        const col = index % layout.cols, row = Math.floor(index / layout.cols);
+        const centerX = col * cellWidth + cellWidth / 2, centerY = row * cellHeight + cellHeight / 2;
+        const iconSize = Math.min(cellWidth * .17, cellHeight * .23, 170);
+        const labelSize = Math.min(cellWidth * .085, cellHeight * .14, 118);
+        const icon = (tile.icon || "").trim();
+        const label = (tile.text || "").trim();
+        context.font = `700 ${Math.min(cellWidth * .085, cellHeight * .14, 118)}px ${fontFamily}`;
+        const lines = wrapRichMenuText(context, label, cellWidth * .78, 2);
+        const iconHeight = icon ? iconSize * 1.12 : 0;
+        const lineHeight = labelSize * 1.26;
+        const blockHeight = iconHeight + (icon && lines.length ? labelSize * .18 : 0) + lines.length * lineHeight;
+        let y = centerY - blockHeight / 2;
+        if (icon) {
+          context.font = `600 ${iconSize}px ${fontFamily}`;
+          context.fillText(icon, centerX, y + iconHeight / 2, cellWidth * .7);
+          y += iconHeight + (lines.length ? labelSize * .18 : 0);
+        }
+        if (lines.length) {
+          context.font = `700 ${labelSize}px ${fontFamily}`;
+          lines.forEach(line => { context.fillText(line, centerX, y + lineHeight / 2, cellWidth * .84); y += lineHeight; });
+        }
+      });
+      const errors = [];
+      const codes = richMenuSettings.tiles.map((tile, index) => ({ tile, code: String.fromCharCode(65 + index) }));
+      if (codes.every(({ tile }) => tile.action === "none")) errors.push("每一格都「不設定」：LINE 不接受整個選單都未設定。");
+      codes.forEach(({ tile, code }) => {
+        if (!(tile.icon || "").trim() && !(tile.text || "").trim()) errors.push(`${code} 格沒有字也沒有圖示。`);
+        if (tile.action === "url" && !/^https:\/\//i.test((tile.content || "").trim())) errors.push(`${code} 格選了「開網址」，內容須以 https:// 開頭。`);
+      });
+      if (imageBackground && !hasImage) errors.push("選了「這篇的主圖加深一點」，但這篇還沒有主圖。");
+      if (includeWarnings) richMenuErrors.textContent = errors.join("\n");
+      return errors;
+    }
+    let richMenuSaveTimer = 0;
+    function refreshRichMenu(save = true) {
+      drawRichMenu(richMenuPreview);
+      richMenuCanvasUrl = richMenuPreview.toDataURL("image/png");
+      if (richMenuUiReady) {
+        richMenuStatus.textContent = "";
+        renderPreview();
+        if (save) { clearTimeout(richMenuSaveTimer); richMenuSaveTimer = setTimeout(saveRichMenu, 180); }
+      }
+    }
+    function syncRichMenuControls() {
+      richMenuLayout.value = richMenuSettings.layout;
+      richMenuBackground.value = richMenuSettings.background;
+      richMenuBarLabel.value = richMenuSettings.barLabel || "選單";
+      ensureRichMenuTiles();
+      refreshRichMenu(false);
+    }
+    richMenuLayout.addEventListener("change", () => {
+      richMenuSettings.layout = richMenuLayout.value;
+      ensureRichMenuTiles(); refreshRichMenu();
+    });
+    richMenuBackground.addEventListener("change", () => { richMenuSettings.background = richMenuBackground.value; refreshRichMenu(); });
+    richMenuBarLabel.addEventListener("input", () => { richMenuSettings.barLabel = [...richMenuBarLabel.value].slice(0, 14).join(""); refreshRichMenu(); });
+    document.getElementById("open-rich-menu").addEventListener("click", () => richMenuDialog.showModal());
+    document.getElementById("download-rich-menu").addEventListener("click", async () => {
+      const errors = drawRichMenu(richMenuPreview);
+      if (errors.length) { richMenuStatus.textContent = "先處理上方紅字，再下載選單圖。"; return; }
+      const layout = selectedMenuLayout();
+      const qualities = [0.92, 0.85, 0.78, 0.7, 0.6, 0.5];
+      try {
+        let blob = null;
+        for (const quality of qualities) {
+          blob = await new Promise(resolve => richMenuPreview.toBlob(resolve, "image/jpeg", quality));
+          if (!blob) throw new Error("瀏覽器無法製作 JPEG 圖片。");
+          if (blob.size <= 1000000) break;
+        }
+        if (blob.size > 1000000) { richMenuStatus.textContent = `圖片仍超過 LINE 的 1 MB 上限（${(blob.size / 1000000).toFixed(2)} MB），請換較簡單的主圖。`; return; }
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${BRAND.name}_圖文選單_${layout.w}x${layout.h}.jpg`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        richMenuStatus.textContent = `下載好了：${layout.w}×${layout.h}，${(blob.size / 1000000).toFixed(2)} MB`;
+      } catch (error) { richMenuStatus.textContent = `下載失敗：${error.message}`; }
+    });
+    document.getElementById("copy-rich-menu").addEventListener("click", async () => {
+      const layout = selectedMenuLayout();
+      const locations = richMenuCellNames(layout);
+      const lines = [`版型：${layout.name}（${layout.w}×${layout.h}）`, `選單列的字：${richMenuSettings.barLabel || "選單"}`];
+      richMenuSettings.tiles.forEach((tile, index) => {
+        const code = String.fromCharCode(65 + index);
+        const display = `${tile.icon || ""}${tile.text ? `${tile.icon ? " " : ""}${tile.text}` : ""}` || "（空白）";
+        const action = tile.action === "url" ? `網址「${tile.content || ""}」` : tile.action === "none" ? "不設定" : `文字「${tile.content || tile.text || ""}」`;
+        lines.push(`${code}（${locations[index]}）${display} → ${action}`);
+      });
+      const table = lines.join("\n");
+      try { await navigator.clipboard.writeText(table); }
+      catch (error) {
+        const temporary = document.createElement("textarea"); temporary.value = table; temporary.style.position = "fixed"; temporary.style.opacity = "0";
+        document.body.append(temporary); temporary.select(); document.execCommand("copy"); temporary.remove();
+      }
+      richMenuStatus.textContent = "設定表已複製，可以貼到 LINE 後台。";
+    });
+    (async () => {
+      try {
+        const saved = await richMenuStore("readonly", store => store.get(RICH_MENU_KEY));
+        if (saved && typeof saved === "object") richMenuSettings = { ...richMenuSettings, ...saved };
+      } catch (error) { richMenuStatus.textContent = "無法讀取圖文選單資料庫設定。"; }
+      syncRichMenuControls();
+      richMenuUiReady = true;
+      renderPreview();
+    })();
+
+    const botDataDialog = document.getElementById("bot-data-dialog");
+    const botDataFaq = document.getElementById("bot-data-faq");
+    const botDataOutput = document.getElementById("bot-data-output");
+    const botDataStatus = document.getElementById("bot-data-status");
+    const botDataCopyStatus = document.getElementById("bot-data-copy-status");
+    document.getElementById("open-bot-data").addEventListener("click", () => {
+      botDataFaq.value = postEditor.value.trim();
+      botDataOutput.value = "";
+      botDataStatus.textContent = "";
+      botDataStatus.classList.remove("is-error");
+      botDataCopyStatus.textContent = "";
+      botDataDialog.showModal();
+    });
+    document.getElementById("generate-bot-data").addEventListener("click", async event => {
+      const button = event.currentTarget;
+      if (button.disabled) return;
+      button.disabled = true;
+      button.textContent = "整理中…";
+      botDataStatus.classList.remove("is-error");
+      botDataStatus.textContent = "正在讀取品牌規格與圖文選單設定。";
+      try {
+        const savedMenu = await richMenuStore("readonly", store => store.get(RICH_MENU_KEY));
+        const menu = savedMenu && typeof savedMenu === "object" ? { ...richMenuSettings, ...savedMenu } : richMenuSettings;
+        const textActions = (Array.isArray(menu.tiles) ? menu.tiles : []).map(tile => ({
+          keyword: String(tile?.content || tile?.text || "").trim(),
+          action: tile?.action || "text"
+        })).filter(item => item.action === "text" && item.keyword);
+        const menuSource = textActions.length
+          ? textActions.map(item => `文字「${item.keyword}」`).join("\n")
+          : "（目前沒有已設定的文字動作）";
+        const faqSource = botDataFaq.value.trim() || "（未提供常見問題）";
+        const system = `你是品牌資料整理員，為 LINE 機器人整理可直接使用的繁體中文知識資料。只根據「品牌規格」回答，不可猜測、補完或把建議當事實。輸出 200～400 個中文字（含標點），只用條列，不要開場白或標題。
+要求：一行一個事實，涵蓋品牌名稱、自稱、地點、營業時間、口氣、主打商品、活動。對價格、地址、時間、網址、停車、刷卡等欄位，只要品牌規格沒有明確提供，就逐項寫「老闆沒說，不知道」；品牌規格已提供的事實照實整理。營業時間與入住／退房時間要分清楚。品牌規格沒有活動內容，就寫「活動：老闆沒說，不知道」。
+圖文選單：對設定清單中的每一個「文字「關鍵字」」，各自輸出一行「客人打「關鍵字」時要回：……」；關鍵字須原樣保留，回覆只能根據品牌規格，不知道就明說「老闆沒說，不知道」。沒有文字動作時說明目前沒有已設定的文字動作。
+常見問題：每題各用一行「常見問題｜問題？答案」。只回答來源有根據的部分，其他寫「老闆沒說，不知道」。最後一行必須完全是「其他問題請客人留言，老闆看到會回。」不得在最後一行之後加字。`;
+        const messages = [
+          { role: "system", content: system },
+          { role: "user", content: `品牌規格：\n${settings.brandSpecification || "（未提供品牌規格）"}\n\n圖文選單文字動作：\n${menuSource}\n\n客人常問的問題／貼文框內容：\n${faqSource}` }
+        ];
+        const result = await askAi(messages);
+        botDataOutput.value = result.reply;
+        const count = [...result.reply.replace(/\s/g, "")].length;
+        const lines = result.reply.trim().split(/\r?\n/).map(line => line.trim());
+        const missingKeywords = textActions.filter(({ keyword }) => !lines.some(line => line.replace(/^(?:[-*•・]\s*)/, "").startsWith(`客人打「${keyword}」時要回：`)));
+        const formatWarnings = [];
+        if (count < 200 || count > 400) formatWarnings.push(`字數目前 ${count} 字，請再調整到 200–400 字。`);
+        else formatWarnings.push(`共 ${count} 字。`);
+        if (missingKeywords.length) formatWarnings.push(`缺少選單關鍵字回覆：${missingKeywords.map(item => item.keyword).join("、")}`);
+        if (lines.at(-1) !== "其他問題請客人留言，老闆看到會回。") formatWarnings.push("最後一行不符合指定句，請調整。");
+        botDataStatus.textContent = [result.warning, ...formatWarnings, aiUsageLine(result), result.truncated ? "回覆可能不完整。" : ""].filter(Boolean).join("\n");
+      } catch (error) {
+        botDataStatus.classList.add("is-error");
+        botDataStatus.textContent = error.message;
+      } finally {
+        button.disabled = false;
+        button.textContent = "整理資料";
+      }
+    });
+    document.getElementById("copy-bot-data").addEventListener("click", async () => {
+      if (!botDataOutput.value.trim()) {
+        botDataCopyStatus.textContent = "請先整理資料。";
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(botDataOutput.value);
+        botDataCopyStatus.textContent = "已複製整理結果。";
+      } catch (error) {
+        botDataOutput.focus();
+        botDataOutput.select();
+        let copied = false;
+        try { copied = document.execCommand("copy"); } catch (copyError) { /* 保留選取內容供手動複製。 */ }
+        botDataCopyStatus.textContent = copied ? "已複製整理結果。" : "已選取結果，請按複製快捷鍵。";
+      }
+    });
 
     let generatedRanges = [];
     let previousOutput = postEditor.value;
@@ -1337,7 +1888,7 @@
       return usage;
     }
     function aiErrorReason(provider, status, message) {
-      if (status === "timeout") return "等太久（超過 60 秒）";
+      if (status === "timeout") return "等太久（超過 180 秒）。可重試，或到 ⚙ 設定更換文案模型。";
       if (status === "network") return "連不到（檢查網路）";
       if (status === "missing") return "還沒填金鑰";
       if (provider === "OpenRouter") {
@@ -1362,7 +1913,7 @@
         body.usage = { include: true };
       }
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 60000);
+      const timer = setTimeout(() => controller.abort(), 180000);
       try {
         const response = await fetch(gemini
           ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
@@ -1696,7 +2247,12 @@
     const ARTICLES_KEY = "songfeng-social-workbench-articles-v1";
     const WORKING_KEY = "songfeng-social-workbench-working-v1";
     let savedPosts = [];
+    let cloudPostIds = new Set();
+    let cloudPostIdsUserId = null;
+    const autoDownloadedUsers = new Set();
+    let cloudSyncBusy = false;
     let currentSavedId = null;
+    let cur = { publishDate: "" };
     let assistantHistory = [];
     let previousVersion = null;
     let articleRevision = 0;
@@ -1717,7 +2273,7 @@
       const stored = JSON.parse(localStorage.getItem(ARTICLES_KEY));
       if (Array.isArray(stored)) {
         savedPosts = stored.filter(item => item && typeof item.id === "string" &&
-          typeof item.name === "string" && typeof item.savedAt === "string" && item.payload);
+          typeof item.name === "string" && (item.savedAt == null || typeof item.savedAt === "string" || typeof item.savedAt === "number") && item.payload);
       }
     } catch (error) {
       document.getElementById("save-status").textContent = "無法讀取已存貼文，請檢查瀏覽器儲存權限。";
@@ -1732,6 +2288,7 @@
       };
       return {
         fields: Object.fromEntries(MATERIAL_FIELDS.map(field => [field.id, document.getElementById(field.id).value])),
+        publishDate: cur.publishDate,
         picturePrompt: document.getElementById("picture-prompt").value,
         drafts: Object.fromEntries(PLATFORMS.map(platform => [platform.id, {
           text: drafts[platform.id].text,
@@ -1749,6 +2306,7 @@
     }
 
     function saveWorkingDraft() {
+      document.getElementById("save-status").classList.remove("is-error");
       try {
         localStorage.setItem(WORKING_KEY, JSON.stringify({ savedId: currentSavedId, payload: captureArticle() }));
         pictureStorageFull = false;
@@ -1780,6 +2338,8 @@
         document.getElementById(field.id).value = typeof payload?.fields?.[field.id] === "string"
           ? payload.fields[field.id] : "";
       });
+      cur.publishDate = typeof payload?.publishDate === "string" ? payload.publishDate : "";
+      publishDateInput.value = cur.publishDate;
       document.getElementById("picture-prompt").value = typeof payload?.picturePrompt === "string" ? payload.picturePrompt : "";
       pictureStatus.textContent = "";
       pictureStatus.classList.remove("is-error");
@@ -1926,43 +2486,169 @@
       return `${parts.year}/${parts.month}/${parts.day}`;
     }
 
-    document.getElementById("save-article").addEventListener("click", () => {
+    function cloudSaveError(error) {
+      const message = String(error?.message || error || "");
+      if (["42P01", "PGRST205"].includes(error?.code)) return "雲端還沒有 posts 表，到 SQL Editor 貼建表那段按 Run";
+      if (error?.code === "42501" || /row-level security/i.test(message)) return "雲端不讓你存，SQL 的權限那段沒跑到";
+      return message || "雲端存檔失敗";
+    }
+
+    function savedPostOrder(a, b) {
+      const value = item => {
+        const time = typeof item.savedAt === "number" ? item.savedAt : Date.parse(item.savedAt);
+        return Number.isFinite(time) ? time : null;
+      };
+      const aTime = value(a), bTime = value(b);
+      if (aTime !== null && bTime !== null) return bTime - aTime || String(b.id).localeCompare(String(a.id));
+      if (aTime !== null) return -1;
+      if (bTime !== null) return 1;
+      return String(b.id).localeCompare(String(a.id));
+    }
+
+    async function uploadAllPosts() {
+      const status = document.getElementById("saved-status");
+      if (!sb || !me) { status.textContent = "先 🔐 登入"; return; }
+      if (cloudSyncBusy) { status.textContent = "雲端同步中，請稍等。"; return; }
+      cloudSyncBusy = true;
+      const userId = me.id;
+      const posts = [...savedPosts];
+      try {
+        for (let index = 0; index < posts.length; index++) {
+          const article = posts[index];
+          status.textContent = `上傳中：第 ${index + 1} 篇／共 ${posts.length} 篇`;
+          try {
+            const { error } = await sb.from("posts").upsert({
+              id: String(article.id), user_id: userId, data: article,
+              publish_date: article.publishDate || null, updated_at: new Date().toISOString()
+            }, { onConflict: "user_id,id" });
+            if (error) throw error;
+            if (me?.id !== userId) throw new Error("登入帳號已變更");
+            cloudPostIds.add(article.id);
+            if (savedDialog.open) renderSavedList(false);
+          } catch (error) {
+            status.textContent = `第 ${index + 1} 篇上傳失敗：${cloudSaveError(error)}`;
+            return;
+          }
+        }
+        status.textContent = `上傳好了：${posts.length} 篇`;
+      } finally {
+        cloudSyncBusy = false;
+      }
+    }
+
+    async function downloadCloudPosts(automatic = false) {
+      const status = document.getElementById("saved-status");
+      if (!sb || !me) { status.textContent = "先 🔐 登入"; return; }
+      if (cloudSyncBusy) {
+        if (automatic) setTimeout(() => downloadCloudPosts(true), 100);
+        else status.textContent = "雲端同步中，請稍等。";
+        return;
+      }
+      cloudSyncBusy = true;
+      const userId = me.id;
+      if (!automatic || savedDialog.open) status.textContent = "從雲端拿回來中…";
+      try {
+        const { data, error } = await sb.from("posts").select("data, updated_at");
+        if (error) throw error;
+        if (me?.id !== userId) return;
+        const incoming = Array.isArray(data) ? data.map(row => row.data) : [];
+        for (const article of incoming) {
+          if (!article || typeof article.id !== "string" || !article.payload) {
+            throw new Error("雲端貼文資料格式不正確");
+          }
+        }
+        const merged = new Map(savedPosts.map(article => [article.id, article]));
+        let added = 0, updated = 0;
+        for (const article of incoming) {
+          const local = merged.get(article.id);
+          if (!local) { merged.set(article.id, article); added++; }
+          else if (savedPostOrder(article, local) < 0) { merged.set(article.id, article); updated++; }
+        }
+        const next = [...merged.values()].sort(savedPostOrder);
+        localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
+        savedPosts = next;
+        cloudPostIds = new Set(incoming.map(article => article.id));
+        if (savedDialog.open) renderSavedList(false);
+        status.textContent = `拿回來了：新增 ${added} 篇、更新 ${updated} 篇`;
+      } catch (error) {
+        if (me?.id === userId) status.textContent = `拿回來失敗：${cloudSaveError(error)}`;
+      } finally {
+        cloudSyncBusy = false;
+      }
+    }
+
+    async function clearLocalPostsOnSignOut() {
+      localStorage.removeItem(ARTICLES_KEY);
+      localStorage.removeItem(WORKING_KEY);
+      await imageStore("readwrite", store => store.clear());
+      savedPosts = [];
+      cloudPostIds.clear();
+      cloudPostIdsUserId = null;
+      await restoreArticle({ fields: {}, drafts: {}, activePlatformId: PLATFORMS[0].id });
+      if (savedDialog.open) renderSavedList();
+      document.getElementById("save-status").textContent = "";
+      renderPictureUsage();
+    }
+
+    document.getElementById("save-article").addEventListener("click", async () => {
       const now = new Date();
       const first = document.getElementById(MATERIAL_FIELDS[0].id).value.trim().replace(/\s+/g, " ");
       const name = `${taiwanDate(now)}｜${first || "第一格未填"}`;
       const id = globalThis.crypto?.randomUUID?.() || `post-${now.getTime()}-${Math.random()}`;
-      const article = { id, name, savedAt: now.toISOString(), payload: captureArticle() };
+      const article = { id, name, publishDate: cur.publishDate, savedAt: Date.now(), payload: captureArticle() };
       const next = savedPosts.concat(article);
+      const saveStatus = document.getElementById("save-status");
+      saveStatus.classList.remove("is-error");
       try {
         localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
         pictureStorageFull = false;
         renderPictureUsage();
         savedPosts = next;
         currentSavedId = id;
-        const drafted = saveWorkingDraft();
-        document.getElementById("save-status").textContent = drafted ? "已新增到「我的貼文」。" : "已新增到「我的貼文」，但自動暫存未成功。";
+        saveWorkingDraft();
       } catch (error) {
         pictureStorageFull = isStorageFull(error);
         renderPictureUsage();
-        document.getElementById("save-status").textContent = "存檔失敗，請檢查瀏覽器儲存權限。";
+        saveStatus.classList.add("is-error");
+        saveStatus.textContent = "存檔失敗，請檢查瀏覽器儲存權限。";
+        return;
+      }
+      if (!sb || !me) {
+        saveStatus.textContent = "只存在這台電腦。🔐 登入以後，會同時存到雲端";
+        return;
+      }
+      try {
+        const { error } = await sb.from("posts").upsert({
+          id: String(article.id), user_id: me.id, data: article,
+          publish_date: article.publishDate || null, updated_at: new Date().toISOString()
+        }, { onConflict: "user_id,id" });
+        if (error) throw error;
+        cloudPostIds.add(article.id);
+        if (savedDialog.open) renderSavedList(false);
+        saveStatus.textContent = `☁ 雲端也存了：${article.name}`;
+      } catch (error) {
+        saveStatus.classList.add("is-error");
+        saveStatus.textContent = `${cloudSaveError(error)}。這台電腦有存到，不會不見`;
       }
     });
 
     const savedDialog = document.getElementById("saved-dialog");
-    function renderSavedList() {
+    function renderSavedList(clearStatus = true) {
       const list = document.getElementById("saved-list");
       list.replaceChildren();
-      document.getElementById("saved-status").textContent = "";
+      if (clearStatus) document.getElementById("saved-status").textContent = "";
       if (!savedPosts.length) {
         list.append(previewElement("p", "dialog-status", "還沒有存過的貼文。"));
         return;
       }
-      [...savedPosts].sort((a, b) => b.savedAt.localeCompare(a.savedAt)).forEach(article => {
+      [...savedPosts].sort(savedPostOrder).forEach(article => {
         const row = previewElement("div", "saved-item");
         const details = previewElement("div");
-        details.append(previewElement("div", "saved-item-name", article.name));
+        const name = previewElement("div", "saved-item-name", article.name);
+        if (me) name.append(previewElement("span", "saved-item-cloud", cloudPostIds.has(article.id) ? "☁ 雲端有" : "只在這台"));
+        details.append(name);
         const time = new Date(article.savedAt);
-        details.append(previewElement("div", "saved-item-time", `存檔時間：${Number.isNaN(time.getTime()) ? article.savedAt : time.toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}`));
+        details.append(previewElement("div", "saved-item-time", `存檔時間：${Number.isNaN(time.getTime()) ? article.savedAt || article.id : time.toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}${article.publishDate ? `｜📅 ${article.publishDate}` : ""}`));
         const actions = previewElement("div", "saved-item-actions");
         const open = previewElement("button", "workbench-button", "打開");
         open.type = "button";
@@ -1980,12 +2666,24 @@
         });
         const remove = previewElement("button", "workbench-button", "刪除");
         remove.type = "button";
-        remove.addEventListener("click", () => {
-          if (!window.confirm("確定嗎？")) return;
+        remove.addEventListener("click", async () => {
+          if (!window.confirm(me ? "雲端的也會一起刪。確定嗎？" : "確定嗎？")) return;
+          if (me && sb) {
+            const userId = me.id;
+            try {
+              const { error } = await sb.from("posts").delete().eq("id", article.id);
+              if (error) throw error;
+              if (me?.id !== userId) throw new Error("登入帳號已變更");
+            } catch (error) {
+              document.getElementById("saved-status").textContent = `刪除失敗：${cloudSaveError(error)}`;
+              return;
+            }
+          }
           const next = savedPosts.filter(item => item.id !== article.id);
           try {
             localStorage.setItem(ARTICLES_KEY, JSON.stringify(next));
             savedPosts = next;
+            cloudPostIds.delete(article.id);
             if (currentSavedId === article.id) {
               currentSavedId = null;
               saveWorkingDraft(); // 畫面上的文字仍留著，只刪除已存清單中的那篇。
@@ -2001,9 +2699,11 @@
       });
     }
     document.getElementById("open-saved").addEventListener("click", () => {
-      renderSavedList();
+      renderSavedList(false);
       savedDialog.showModal();
     });
+    document.getElementById("upload-all-posts").addEventListener("click", uploadAllPosts);
+    document.getElementById("download-cloud-posts").addEventListener("click", () => downloadCloudPosts());
     document.getElementById("new-article").addEventListener("click", async () => {
       await restoreArticle({ fields: {}, drafts: {}, activePlatformId: PLATFORMS[0].id });
       saveWorkingDraft();
